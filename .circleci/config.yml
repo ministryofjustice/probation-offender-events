@@ -1,13 +1,5 @@
 version: 2.1
 
-parameters:
-  preprod_context:
-    type: string
-    default: "${CIRCLE_PROJECT_REPONAME}-preprod"
-  prod_context:
-    type: string
-    default: "${CIRCLE_PROJECT_REPONAME}-prod"
-
 orbs:
   owasp: entur/owasp@0.0.10
   hmpps: ministryofjustice/hmpps@1.1.2
@@ -66,7 +58,7 @@ workflows:
       - hmpps/deploy_env:
           name: deploy_preprod
           env: "preprod"
-          context: << parameters.preprod_context >>
+          context: probation-offender-events-preprod
           requires:
             - request-preprod-approval
       - request-prod-approval:
@@ -77,7 +69,7 @@ workflows:
           name: deploy_prod
           env: "prod"
           slack_notification: true
-          context: << parameters.prod_context >>
+          context: probation-offender-events-prod
           requires:
             - request-prod-approval
 
