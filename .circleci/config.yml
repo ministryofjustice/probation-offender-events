@@ -9,12 +9,37 @@ parameters:
     default: "${CIRCLE_PROJECT_REPONAME}-prod"
 
 orbs:
+  owasp: entur/owasp@0.0.10
   hmpps: ministryofjustice/hmpps@1.1.2
+
+jobs:
+  validate:
+    executor: hmpps/java
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - gradle-{{ checksum "build.gradle.kts" }}
+            - gradle-
+      - run:
+          command: ./gradlew check
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: gradle-{{ checksum "build.gradle.kts" }}
+      - store_test_results:
+          path: build/test-results
+      - store_artifacts:
+          path: build/reports/tests
 
 workflows:
   version: 2
   build-test-and-deploy:
     jobs:
+      - validate:
+          filters:
+            tags:
+              ignore: /.*/
       - hmpps/helm_lint:
           name: helm_lint
       - hmpps/build_docker:
@@ -31,6 +56,7 @@ workflows:
               only:
                 - main
           requires:
+            - validate
             - build_docker
             - helm_lint
       - request-preprod-approval:
@@ -55,13 +81,14 @@ workflows:
           requires:
             - request-prod-approval
 
-#  scheduled:
-#    triggers:
-#      - schedule:
-#          cron: "0 7 * * 1-5"
-#          filters:
-#            branches:
-#              only:
-#                - main
-#    jobs:
-#      - hmpps/npm_security_audit
+  scheduled:
+    triggers:
+      - schedule:
+          cron: "0 7 * * 1-5"
+          filters:
+            branches:
+              only:
+                - main
+    jobs:
+      - owasp/gradle_owasp_dependency_check:
+          executor: hmpps/java
