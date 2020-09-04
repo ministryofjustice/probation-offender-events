@@ -6,3 +6,7 @@ plugins {
 configurations {
 	testImplementation { exclude(group = "org.junit.vintage") }
 }
+
+dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
+}
