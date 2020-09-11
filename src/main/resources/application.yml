@@ -65,3 +65,6 @@ cloud:
       auto: false
     region:
       static: eu-west-2
+
+sns:
+  provider: aws
