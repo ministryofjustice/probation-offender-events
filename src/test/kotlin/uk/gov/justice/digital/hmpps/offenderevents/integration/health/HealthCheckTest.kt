@@ -102,6 +102,19 @@ class HealthCheckTest {
         .jsonPath("status").isEqualTo("DOWN")
   }
 
+  @Test
+  fun `Health page reports topic is up`() {
+    stubPingWithResponse(200)
+
+    webTestClient.get()
+        .uri("/health")
+        .exchange()
+        .expectStatus()
+        .isOk
+        .expectBody()
+        .jsonPath("components.topicHealth.status").isEqualTo("UP")
+        .jsonPath("status").isEqualTo("UP")
+  }
 
   private fun stubPingWithResponse(status: Int) {
     OAuthExtension.oAuthApi.stubHealthPing(status)
