@@ -16,5 +16,6 @@ dependencies {
 	implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.1.RELEASE")
 
 	testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.1")
+	testImplementation("org.awaitility:awaitility-kotlin:4.0.3")
 
 }
