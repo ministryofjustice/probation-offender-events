@@ -69,6 +69,20 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
 
   }
 
+  fun stubPrimaryIdentifiers(vararg offenderIds: Long) {
+    offenderIds.forEachIndexed { index, offenderId ->
+      stubFor(get("/secure/offenders/offenderId/${offenderId}/identifiers")
+          .willReturn(
+              aResponse()
+                  .withHeader("Content-Type", "application/json")
+                  .withBody(anOffenderIdentifier(offenderId))
+          )
+      )
+    }
+  }
+
+  fun verifyPrimaryIdentifiersCalledWith(offenderId: Long) = this.verify(getRequestedFor(urlEqualTo("/secure/offenders/offenderId/${offenderId}/identifiers")))
+
   fun countNextUpdateRequests() : Int = findAll(getRequestedFor(urlEqualTo("/secure/offenders/nextUpdate"))).count()
 
   private fun anOffenderUpdate(offenderDeltaId: Long, offenderId: Long) = """
@@ -80,6 +94,15 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
       "sourceTable": "OFFENDER",
       "sourceRecordId": 345,
       "status": "INPROGRESS"
+    }
+  """.trimIndent()
+  private fun anOffenderIdentifier(offenderId: Long) = """
+    {
+      "offenderId": $offenderId,
+      "primaryIdentifiers": {
+        "crn": "CRN${offenderId}",
+        "nomsNumber": "NOMS${offenderId}"
+      }
     }
   """.trimIndent()
 }

@@ -23,6 +23,14 @@ class CommunityApiService(
         .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
         .block()
   }
+
+  fun getOffenderIdentifiers(offenderId: Long): OffenderIdentifiers =
+      webClient.get()
+          .uri("$communityApiUrl/secure/offenders/offenderId/$offenderId/identifiers")
+          .retrieve()
+          .bodyToMono(OffenderIdentifiers::class.java)
+          .block()!!
+
 }
 
 fun <T> emptyWhenNotFound(exception: WebClientResponseException): Mono<T> = emptyWhen(exception, NOT_FOUND)
@@ -38,4 +46,13 @@ data class OffenderUpdate(
     val sourceTable: String,
     val sourceRecordId: Long,
     val status: String
+)
+
+data class PrimaryIdentifiers (
+  val crn: String,
+  val nomsNumber: String,
+)
+data class OffenderIdentifiers(
+    val offenderId: Long,
+    val primaryIdentifiers: PrimaryIdentifiers,
 )

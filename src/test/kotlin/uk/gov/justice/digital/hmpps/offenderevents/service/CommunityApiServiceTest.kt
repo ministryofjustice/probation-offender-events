@@ -76,6 +76,53 @@ class CommunityApiServiceTest : IntegrationTestBase() {
     }
   }
 
+  @Nested
+  inner class GetOffenderIdentifiers {
+
+    @BeforeEach
+    fun `stub token`() {
+      oAuthMockServer.stubGrantToken()
+    }
+
+    @Test
+    fun `offender identifiers calls endpoint`() {
+      val expectedOffenderIdentifier = createOffenderIdentifiers()
+      communityMockServer.stubFor(get("/secure/offenders/offenderId/99/identifiers").willReturn(
+          aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withBody(createOffenderIdentifiers(expectedOffenderIdentifier))
+              .withStatus(HTTP_OK)))
+
+      val actualOffenderIdentifier = service.getOffenderIdentifiers(99L)
+
+      assertThat(actualOffenderIdentifier).isEqualTo(expectedOffenderIdentifier)
+      communityMockServer.verify(getRequestedFor(urlEqualTo("/secure/offenders/offenderId/99/identifiers"))
+          .withHeader("Authorization", equalTo("Bearer ABCDE")))
+    }
+
+    @Test
+    fun `get offender identifiers throws exception if not found`() {
+      communityMockServer.stubFor(get("/secure/offenders/offenderId/99/identifiers").willReturn(
+          aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withBody("{\"error\": \"not found\"}")
+              .withStatus(HTTP_NOT_FOUND)))
+
+      assertThatThrownBy { service.getOffenderIdentifiers(99L) }.isInstanceOf(WebClientResponseException.NotFound::class.java)
+    }
+
+    @Test
+    fun `get offender identifiers will throw exception for other types of http responses`() {
+      communityMockServer.stubFor(get("/secure/offenders/offenderId/99/identifiers").willReturn(
+          aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withStatus(HTTP_BAD_REQUEST)))
+
+      assertThatThrownBy { service.getOffenderIdentifiers(99L) }.isInstanceOf(WebClientResponseException.BadRequest::class.java)
+    }
+  }
+
+
   private fun createOffenderUpdate(): OffenderUpdate {
     return OffenderUpdate(1L, LocalDateTime.now(), "UPSERT", 2L, "OFFENDER", 99L, "INPROGRESS")
   }
@@ -89,6 +136,19 @@ class CommunityApiServiceTest : IntegrationTestBase() {
       "sourceTable": "${offenderUpdate.sourceTable}",
       "sourceRecordId": ${offenderUpdate.sourceRecordId},
       "status": "${offenderUpdate.status}"
+    }
+  """.trimIndent()
+
+  private fun createOffenderIdentifiers(): OffenderIdentifiers {
+    return OffenderIdentifiers(offenderId = 99, primaryIdentifiers = PrimaryIdentifiers(crn = "X12345", nomsNumber = "A12345A"))
+  }
+  private fun createOffenderIdentifiers(offenderIdentifiers: OffenderIdentifiers) = """
+    {
+      "offenderId": ${offenderIdentifiers.offenderId},
+      "primaryIdentifiers": {
+        "crn": "${offenderIdentifiers.primaryIdentifiers.crn}",
+        "nomsNumber": "${offenderIdentifiers.primaryIdentifiers.nomsNumber}"
+      }
     }
   """.trimIndent()
 
