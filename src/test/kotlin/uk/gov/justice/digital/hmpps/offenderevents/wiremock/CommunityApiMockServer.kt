@@ -22,7 +22,7 @@ class CommunityApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCal
   }
 
   override fun beforeEach(context: ExtensionContext) {
-    communityApi.resetRequests()
+    communityApi.resetAll()
   }
 
   override fun afterAll(context: ExtensionContext) {
@@ -56,6 +56,17 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
           .willSetStateTo("${index+1}")
       )
     }
+    stubFor(get("/secure/offenders/nextUpdate")
+        .inScenario("Multiple events")
+        .whenScenarioStateIs("${offenderUpdates.size}")
+        .willReturn(
+            aResponse()
+                .withHeader("Content-Type", "application/json")
+                .withStatus(404)
+        )
+        .willSetStateTo("FINISHED")
+    )
+
   }
 
   fun countNextUpdateRequests() : Int = findAll(getRequestedFor(urlEqualTo("/secure/offenders/nextUpdate"))).count()
