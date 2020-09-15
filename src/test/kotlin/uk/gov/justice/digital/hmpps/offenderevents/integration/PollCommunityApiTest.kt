@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.offenderevents.service.OffenderUpdate
+import uk.gov.justice.digital.hmpps.offenderevents.service.OffenderUpdatePollService
 import uk.gov.justice.digital.hmpps.offenderevents.wiremock.CommunityApiExtension
 import java.time.LocalDateTime
 
@@ -23,6 +24,9 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
   @Autowired
   lateinit var awsSqsClient: AmazonSQS
+
+  @Autowired
+  lateinit var offenderUpdatePollService: OffenderUpdatePollService
 
   private val gson = GsonBuilder().create()
 
@@ -54,16 +58,22 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
   @Test
   fun `Community API is called 4 times`() {
+    offenderUpdatePollService.pollForOffenderUpdates()
+
     await untilCallTo { CommunityApiExtension.communityApi.countNextUpdateRequests() } matches { it == 4 }
   }
 
   @Test
   fun `3 messages are added to the queue`() {
+    offenderUpdatePollService.pollForOffenderUpdates()
+
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
   }
 
   @Test
   fun `3 offender details are retrieved from community api`() {
+    offenderUpdatePollService.pollForOffenderUpdates()
+
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
     offenderIds.forEach {
       CommunityApiExtension.communityApi.verifyPrimaryIdentifiersCalledWith(it)
@@ -72,6 +82,8 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
   @Test
   fun `3 offender events are written to the topic`() {
+    offenderUpdatePollService.pollForOffenderUpdates()
+
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
 
     offenderIds.forEach {
@@ -86,6 +98,8 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
   @Test
   fun `all messages have attributes for the event type and source`() {
+    offenderUpdatePollService.pollForOffenderUpdates()
+
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
 
     repeat(3) {
@@ -98,6 +112,8 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
   @Test
   fun `3 offender details are deleted using community api`() {
+    offenderUpdatePollService.pollForOffenderUpdates()
+
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
 
     offenderDeltaIds.forEach {
