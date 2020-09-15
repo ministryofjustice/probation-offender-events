@@ -16,5 +16,8 @@ dependencies {
 	implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.1.RELEASE")
 
 	testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.1")
+	testImplementation("org.awaitility:awaitility-kotlin:4.0.3")
+	testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.18.1")
+	testImplementation("com.google.code.gson:gson:2.8.6")
 
 }

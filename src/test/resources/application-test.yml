@@ -17,3 +17,12 @@ oauth:
 
 community:
   endpoint.url: http://localhost:9096
+
+sqs:
+  queue.name: test_queue
+  endpoint.url: http://localhost:4576
+
+offenderUpdatePoll:
+  fixedDelay:
+    ms: 6000 # awaitility times out after 10 seconds so there will be max of 2 polls in this time
+  enabled: true

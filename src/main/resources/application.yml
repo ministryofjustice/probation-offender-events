@@ -68,3 +68,8 @@ cloud:
 
 sns:
   provider: aws
+
+offenderUpdatePoll:
+  fixedDelay:
+    ms: 10000
+  enabled: false
