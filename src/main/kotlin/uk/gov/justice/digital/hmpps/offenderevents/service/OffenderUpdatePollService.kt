@@ -32,7 +32,8 @@ class OffenderUpdatePollService(
           ?.let {
             NotificationMessagingTemplate(snsAwsClient).convertAndSend(
                 TopicMessageChannel(snsAwsClient, topicArn),
-                toOffenderEventJson(it)
+                toOffenderEventJson(it),
+                mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
             )
             it
           }
