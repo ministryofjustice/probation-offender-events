@@ -72,3 +72,4 @@ sns:
 offenderUpdatePoll:
   fixedDelay:
     ms: 10000
+  enabled: false

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate
 import org.springframework.cloud.aws.messaging.core.TopicMessageChannel
 import org.springframework.context.annotation.Configuration
@@ -24,6 +25,7 @@ class OffenderUpdatePollService(
   }
 
   @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
+  @ConditionalOnProperty(name = ["offenderUpdatePoll.enabled"], havingValue = "true")
   fun pollForOffenderUpdates() {
     do {
       val update: Any? = communityApiService.getOffenderUpdate()

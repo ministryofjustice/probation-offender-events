@@ -25,3 +25,4 @@ sqs:
 offenderUpdatePoll:
   fixedDelay:
     ms: 6000 # awaitility times out after 10 seconds so there will be max of 2 polls in this time
+  enabled: true
