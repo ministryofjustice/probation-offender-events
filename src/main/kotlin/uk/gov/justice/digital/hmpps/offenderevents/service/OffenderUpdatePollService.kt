@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate
 import org.springframework.cloud.aws.messaging.core.TopicMessageChannel
 import org.springframework.scheduling.annotation.Scheduled
@@ -24,24 +23,31 @@ class OffenderUpdatePollService(
   }
 
   @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
-  @ConditionalOnProperty(name = ["offenderUpdatePoll.enabled"], havingValue = "true")
   fun pollForOffenderUpdates() {
     do {
       val update: Any? = communityApiService.getOffenderUpdate()
-          .also { log.info("Found offender update for offenderId=${it?.offenderId}") }
+          .also { logOffenderFound(it) }
           ?.let { (it.offenderDeltaId to communityApiService.getOffenderIdentifiers(it.offenderId)) }
           ?.let { (offenderDeltaId, primaryIdentifiers) ->
-            NotificationMessagingTemplate(snsAwsClient).convertAndSend(
-                TopicMessageChannel(snsAwsClient, topicArn),
-                toOffenderEventJson(primaryIdentifiers),
-                mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
-            )
+            publishMessage(primaryIdentifiers)
             offenderDeltaId
-          }?.also {
-            communityApiService.deleteOffenderUpdate(it)
-          }
+          }?.also { communityApiService.deleteOffenderUpdate(it) }
     } while (update != null)
 
+  }
+
+  private fun publishMessage(primaryIdentifiers: OffenderIdentifiers) {
+    NotificationMessagingTemplate(snsAwsClient).convertAndSend(
+        TopicMessageChannel(snsAwsClient, topicArn),
+        toOffenderEventJson(primaryIdentifiers),
+        mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
+    )
+  }
+
+  private fun logOffenderFound(it: OffenderUpdate?) {
+    log.info(
+        it?.let { "Found offender update for offenderId=${it.offenderId}" }
+            ?: "No offender update found")
   }
 
   internal fun toOffenderEventJson(offenderIdentifiers: OffenderIdentifiers): String =
