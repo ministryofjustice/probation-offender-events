@@ -59,7 +59,7 @@ data class OffenderUpdate(
 
 data class PrimaryIdentifiers(
     val crn: String,
-    val nomsNumber: String,
+    val nomsNumber: String? = null,
 )
 
 data class OffenderIdentifiers(
