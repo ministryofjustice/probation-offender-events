@@ -103,6 +103,22 @@ class CommunityApiServiceTest : IntegrationTestBase() {
     }
 
     @Test
+    fun `offender identifiers does not include missing noms`() {
+      val expectedOffenderIdentifier = createOffenderIdentifiersNoNoms()
+      communityMockServer.stubFor(get("/secure/offenders/offenderId/99/identifiers").willReturn(
+          aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withBody(createOffenderIdentifiersNoNoms(expectedOffenderIdentifier))
+              .withStatus(HTTP_OK)))
+
+      val actualOffenderIdentifier = service.getOffenderIdentifiers(99L)
+
+      assertThat(actualOffenderIdentifier).isEqualTo(expectedOffenderIdentifier)
+      communityMockServer.verify(getRequestedFor(urlEqualTo("/secure/offenders/offenderId/99/identifiers"))
+          .withHeader("Authorization", equalTo("Bearer ABCDE")))
+    }
+
+    @Test
     fun `get offender identifiers throws exception if not found`() {
       communityMockServer.stubFor(get("/secure/offenders/offenderId/99/identifiers").willReturn(
           aResponse()
@@ -186,12 +202,27 @@ class CommunityApiServiceTest : IntegrationTestBase() {
     return OffenderIdentifiers(offenderId = 99, primaryIdentifiers = PrimaryIdentifiers(crn = "X12345", nomsNumber = "A12345A"))
   }
 
+  private fun createOffenderIdentifiersNoNoms(): OffenderIdentifiers {
+    return OffenderIdentifiers(offenderId = 99, primaryIdentifiers = PrimaryIdentifiers(crn = "X12345"))
+  }
+
   private fun createOffenderIdentifiers(offenderIdentifiers: OffenderIdentifiers) = """
     {
       "offenderId": ${offenderIdentifiers.offenderId},
       "primaryIdentifiers": {
         "crn": "${offenderIdentifiers.primaryIdentifiers.crn}",
-        "nomsNumber": "${offenderIdentifiers.primaryIdentifiers.nomsNumber}"
+        "nomsNumber": "${offenderIdentifiers.primaryIdentifiers.nomsNumber}",
+        "pncNumber": "2016/001225T"
+      }
+    }
+  """.trimIndent()
+
+  private fun createOffenderIdentifiersNoNoms(offenderIdentifiers: OffenderIdentifiers) = """
+    {
+      "offenderId": ${offenderIdentifiers.offenderId},
+      "primaryIdentifiers": {
+        "crn": "${offenderIdentifiers.primaryIdentifiers.crn}",
+        "pncNumber": "2016/001225T"
       }
     }
   """.trimIndent()

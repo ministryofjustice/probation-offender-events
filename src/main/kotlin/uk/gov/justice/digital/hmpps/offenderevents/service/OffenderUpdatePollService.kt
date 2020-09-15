@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.offenderevents.service
 
 import com.amazonaws.services.sns.AmazonSNS
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -8,12 +9,10 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate
 import org.springframework.cloud.aws.messaging.core.TopicMessageChannel
-import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 @Service
-@Configuration
 class OffenderUpdatePollService(
     private val communityApiService: CommunityApiService,
     private val snsAwsClient: AmazonSNS,
@@ -45,7 +44,7 @@ class OffenderUpdatePollService(
 
   }
 
-  private fun toOffenderEventJson(offenderIdentifiers: OffenderIdentifiers): String =
+  internal fun toOffenderEventJson(offenderIdentifiers: OffenderIdentifiers): String =
       objectMapper.writeValueAsString(
           OffenderEvent(
               offenderId = offenderIdentifiers.offenderId,
@@ -56,4 +55,5 @@ class OffenderUpdatePollService(
 
 }
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class OffenderEvent(val offenderId: Long, val crn: String, val nomsNumber: String? = null)
