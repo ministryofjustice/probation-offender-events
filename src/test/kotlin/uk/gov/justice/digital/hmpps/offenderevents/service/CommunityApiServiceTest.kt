@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.offenderevents.service
 
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.delete
+import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
@@ -122,6 +124,47 @@ class CommunityApiServiceTest : IntegrationTestBase() {
     }
   }
 
+  @Nested
+  inner class DeleteOffenderUpdate {
+
+    @BeforeEach
+    fun `stub token`() {
+      oAuthMockServer.stubGrantToken()
+    }
+
+    @Test
+    fun `delete calls endpoint`() {
+      communityMockServer.stubFor(delete("/secure/offenders/update/101").willReturn(
+          aResponse().withStatus(HTTP_OK)
+      ))
+
+      service.deleteOffenderUpdate(101L)
+
+      communityMockServer.verify(deleteRequestedFor(urlEqualTo("/secure/offenders/update/101")).withHeader("Authorization", equalTo("Bearer ABCDE")))
+    }
+
+    @Test
+    fun `delete fails with not found`() {
+      communityMockServer.stubFor(delete("/secure/offenders/update/101").willReturn(
+          aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withBody("{\"error\": \"not found\"}")
+              .withStatus(HTTP_NOT_FOUND)
+      ))
+
+      assertThatThrownBy { service.deleteOffenderUpdate(101L) }.isInstanceOf(WebClientResponseException.NotFound::class.java)
+    }
+
+    @Test
+    fun `delete throws exception for other types of http responses`() {
+      communityMockServer.stubFor(delete("/secure/offenders/update/101").willReturn(
+          aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withStatus(HTTP_BAD_REQUEST)))
+
+      assertThatThrownBy { service.deleteOffenderUpdate(101L) }.isInstanceOf(WebClientResponseException.BadRequest::class.java)
+    }
+  }
 
   private fun createOffenderUpdate(): OffenderUpdate {
     return OffenderUpdate(1L, LocalDateTime.now(), "UPSERT", 2L, "OFFENDER", 99L, "INPROGRESS")
@@ -142,6 +185,7 @@ class CommunityApiServiceTest : IntegrationTestBase() {
   private fun createOffenderIdentifiers(): OffenderIdentifiers {
     return OffenderIdentifiers(offenderId = 99, primaryIdentifiers = PrimaryIdentifiers(crn = "X12345", nomsNumber = "A12345A"))
   }
+
   private fun createOffenderIdentifiers(offenderIdentifiers: OffenderIdentifiers) = """
     {
       "offenderId": ${offenderIdentifiers.offenderId},

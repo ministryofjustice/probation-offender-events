@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.offenderevents.wiremock
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.delete
+import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
@@ -10,6 +12,9 @@ import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
 import org.junit.jupiter.api.extension.ExtensionContext
+import uk.gov.justice.digital.hmpps.offenderevents.service.OffenderUpdate
+import java.time.format.DateTimeFormatter
+
 
 class CommunityApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
   companion object {
@@ -43,7 +48,7 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
 
   }
 
-  fun stubNextUpdates(vararg offenderUpdates: Pair<Long, Long>) {
+  fun stubNextUpdates(vararg offenderUpdates: OffenderUpdate) {
     offenderUpdates.forEachIndexed { index, offenderUpdate ->
       stubFor(get("/secure/offenders/nextUpdate")
           .inScenario("Multiple events")
@@ -51,9 +56,9 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
           .willReturn(
               aResponse()
                   .withHeader("Content-Type", "application/json")
-                  .withBody(anOffenderUpdate(offenderUpdate.first, offenderUpdate.second))
+                  .withBody(toJson(offenderUpdate))
           )
-          .willSetStateTo("${index+1}")
+          .willSetStateTo("${index + 1}")
       )
     }
     stubFor(get("/secure/offenders/nextUpdate")
@@ -69,8 +74,16 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
 
   }
 
+  fun stubDeleteOffenderUpdate(vararg offenderDeltaIds: Long) {
+    offenderDeltaIds.forEach {
+      stubFor(delete("/secure/offenders/update/$it").willReturn(aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withStatus(200)))
+    }
+  }
+
   fun stubPrimaryIdentifiers(vararg offenderIds: Long) {
-    offenderIds.forEachIndexed { index, offenderId ->
+    offenderIds.forEach { offenderId ->
       stubFor(get("/secure/offenders/offenderId/${offenderId}/identifiers")
           .willReturn(
               aResponse()
@@ -83,19 +96,24 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
 
   fun verifyPrimaryIdentifiersCalledWith(offenderId: Long) = this.verify(getRequestedFor(urlEqualTo("/secure/offenders/offenderId/${offenderId}/identifiers")))
 
-  fun countNextUpdateRequests() : Int = findAll(getRequestedFor(urlEqualTo("/secure/offenders/nextUpdate"))).count()
 
-  private fun anOffenderUpdate(offenderDeltaId: Long, offenderId: Long) = """
+  fun verifyOffenderUpdateDeleteCalledWith(offenderDeltaId: Long) = this.verify(deleteRequestedFor(urlEqualTo("/secure/offenders/update/${offenderDeltaId}")))
+
+
+  fun countNextUpdateRequests(): Int = findAll(getRequestedFor(urlEqualTo("/secure/offenders/nextUpdate"))).count()
+
+  private fun toJson(offenderUpdate: OffenderUpdate) = """
     {
-      "offenderId": $offenderId,
-      "dateChanged": "2020-09-10T15:12:43.000Z",
-      "action": "UPSERT",
-      "offenderDeltaId": $offenderDeltaId,
-      "sourceTable": "OFFENDER",
-      "sourceRecordId": 345,
-      "status": "INPROGRESS"
+      "offenderId": ${offenderUpdate.offenderId},
+      "dateChanged": "${offenderUpdate.dateChanged.format(DateTimeFormatter.ISO_DATE_TIME)}",
+      "action": "${offenderUpdate.action}",
+      "offenderDeltaId": ${offenderUpdate.offenderDeltaId},
+      "sourceTable": "${offenderUpdate.sourceTable}",
+      "sourceRecordId": ${offenderUpdate.sourceRecordId},
+      "status": "${offenderUpdate.status}"
     }
   """.trimIndent()
+
   private fun anOffenderIdentifier(offenderId: Long) = """
     {
       "offenderId": $offenderId,

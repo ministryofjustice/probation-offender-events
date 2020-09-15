@@ -28,14 +28,16 @@ class OffenderUpdatePollService(
     do {
       val update: Any? = communityApiService.getOffenderUpdate()
           .also { log.info("Found offender update for offenderId=${it?.offenderId}") }
-          ?.let { communityApiService.getOffenderIdentifiers(it.offenderId) }
-          ?.let {
+          ?.let { (it.offenderDeltaId to communityApiService.getOffenderIdentifiers(it.offenderId)) }
+          ?.let { (offenderDeltaId, primaryIdentifiers) ->
             NotificationMessagingTemplate(snsAwsClient).convertAndSend(
                 TopicMessageChannel(snsAwsClient, topicArn),
-                toOffenderEventJson(it),
+                toOffenderEventJson(primaryIdentifiers),
                 mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
             )
-            it
+            offenderDeltaId
+          }?.also {
+            communityApiService.deleteOffenderUpdate(it)
           }
     } while (update != null)
 

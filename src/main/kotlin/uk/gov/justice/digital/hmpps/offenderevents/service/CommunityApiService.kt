@@ -1,13 +1,14 @@
 package uk.gov.justice.digital.hmpps.offenderevents.service
-import org.springframework.http.HttpStatus.NOT_FOUND
-import java.time.LocalDateTime
-import org.springframework.http.HttpStatus
+
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 
 @Service
 class CommunityApiService(
@@ -15,7 +16,7 @@ class CommunityApiService(
     @Value("\${community.endpoint.url}") private val communityApiUrl: String,
 ) {
 
-  fun getOffenderUpdate() : OffenderUpdate? {
+  fun getOffenderUpdate(): OffenderUpdate? {
     return webClient.get()
         .uri("$communityApiUrl/secure/offenders/nextUpdate")
         .retrieve()
@@ -30,6 +31,14 @@ class CommunityApiService(
           .retrieve()
           .bodyToMono(OffenderIdentifiers::class.java)
           .block()!!
+
+  fun deleteOffenderUpdate(offenderDeltaId: Long) {
+    webClient.delete()
+        .uri("$communityApiUrl/secure/offenders/update/$offenderDeltaId")
+        .retrieve()
+        .toBodilessEntity()
+        .block()
+  }
 
 }
 
@@ -48,10 +57,11 @@ data class OffenderUpdate(
     val status: String
 )
 
-data class PrimaryIdentifiers (
-  val crn: String,
-  val nomsNumber: String,
+data class PrimaryIdentifiers(
+    val crn: String,
+    val nomsNumber: String,
 )
+
 data class OffenderIdentifiers(
     val offenderId: Long,
     val primaryIdentifiers: PrimaryIdentifiers,
