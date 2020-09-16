@@ -25,6 +25,9 @@ env:
   - name: COMMUNITY_ENDPOINT_URL
     value: "{{ .Values.env.COMMUNITY_ENDPOINT_URL }}"
 
+  - name: OFFENDERUPDATEPOLL_ENABLED
+    value: "{{ .Values.env.OFFENDERUPDATEPOLL_ENABLED }}"
+
   - name: OAUTH_CLIENT_ID
     valueFrom:
       secretKeyRef:

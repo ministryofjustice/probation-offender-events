@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.offenderevents.service
 
 import com.amazonaws.services.sns.AmazonSNS
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.microsoft.applicationinsights.TelemetryClient
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,11 +12,17 @@ import org.springframework.boot.test.mock.mockito.MockBean
 @SpringBootTest(classes = [ObjectMapper::class, OffenderUpdatePollService::class])
 class OffenderUpdatePollServiceTest {
 
+  @Suppress("unused")
   @MockBean
   lateinit var communityApiService: CommunityApiService
 
+  @Suppress("unused")
   @MockBean
   lateinit var amazonSNS: AmazonSNS
+
+  @Suppress("unused")
+  @MockBean
+  lateinit var telemetryClient: TelemetryClient
 
   @Autowired
   lateinit var offenderUpdatePollService: OffenderUpdatePollService
