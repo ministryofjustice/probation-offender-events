@@ -3,6 +3,10 @@ package uk.gov.justice.digital.hmpps.offenderevents.integration
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import com.google.gson.GsonBuilder
+import com.nhaarman.mockitokotlin2.check
+import com.nhaarman.mockitokotlin2.eq
+import com.nhaarman.mockitokotlin2.isNull
+import com.nhaarman.mockitokotlin2.verify
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -41,7 +45,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
   private final fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long) = OffenderUpdate(
       offenderId = offenderId,
       offenderDeltaId = offenderDeltaId,
-      dateChanged = LocalDateTime.now(),
+      dateChanged = LocalDateTime.parse("2020-07-19T13:56:43"),
       action = "INSERT",
       sourceTable = "OFFENDER",
       sourceRecordId = 345L,
@@ -118,6 +122,28 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
     offenderDeltaIds.forEach {
       CommunityApiExtension.communityApi.verifyOffenderUpdateDeleteCalledWith(it)
+    }
+  }
+
+
+  @Test
+  fun `3 telemetry events will be raised`() {
+    offenderUpdatePollService.pollForOffenderUpdates()
+
+    await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
+
+    offenderIds.forEach { offenderId ->
+      verify(telemetryClient).trackEvent(
+          eq("ProbationOffenderEvent"),
+          check {
+            assertThat(it).containsEntry("crn", "CRN$offenderId")
+            assertThat(it).containsEntry("action", "INSERT")
+            assertThat(it).containsEntry("source", "OFFENDER")
+            assertThat(it).containsEntry("sourceId", "345")
+            assertThat(it).containsEntry("dateChanged", "2020-07-19T13:56:43")
+          },
+          isNull()
+      )
     }
   }
 

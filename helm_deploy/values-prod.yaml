@@ -20,6 +20,7 @@ env:
   JAVA_OPTS: "-Xmx512m"
   OAUTH_ENDPOINT_URL: "https://sign-in.hmpps.service.justice.gov.uk/auth"
   COMMUNITY_ENDPOINT_URL: "https://community-api-secure.probation.service.justice.gov.uk"
+  OFFENDERUPDATEPOLL_ENABLED: "false"
 
 whitelist:
   office: "217.33.148.210/32"

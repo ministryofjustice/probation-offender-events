@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.offenderevents.service
 import com.amazonaws.services.sns.AmazonSNS
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -10,13 +11,15 @@ import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplat
 import org.springframework.cloud.aws.messaging.core.TopicMessageChannel
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import java.time.format.DateTimeFormatter
 
 @Service
 class OffenderUpdatePollService(
     private val communityApiService: CommunityApiService,
     private val snsAwsClient: AmazonSNS,
     @Value("\${sns.topic.arn}") private val topicArn: String,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val telemetryClient: TelemetryClient,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -27,20 +30,33 @@ class OffenderUpdatePollService(
     do {
       val update: Any? = communityApiService.getOffenderUpdate()
           .also { logOffenderFound(it) }
-          ?.let { (it.offenderDeltaId to communityApiService.getOffenderIdentifiers(it.offenderId)) }
-          ?.let { (offenderDeltaId, primaryIdentifiers) ->
-            publishMessage(primaryIdentifiers)
-            offenderDeltaId
-          }?.also { communityApiService.deleteOffenderUpdate(it) }
+          ?.let { publishMessage(it, communityApiService.getOffenderIdentifiers(it.offenderId)) }
+          ?.also { communityApiService.deleteOffenderUpdate(it.offenderDeltaId) }
     } while (update != null)
 
   }
 
-  private fun publishMessage(primaryIdentifiers: OffenderIdentifiers) {
+  private fun publishMessage(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers): OffenderUpdate {
     NotificationMessagingTemplate(snsAwsClient).convertAndSend(
         TopicMessageChannel(snsAwsClient, topicArn),
         toOffenderEventJson(primaryIdentifiers),
         mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
+    )
+    recordAnalytics(offenderUpdate, primaryIdentifiers)
+    return offenderUpdate
+  }
+
+  private fun recordAnalytics(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers) {
+    telemetryClient.trackEvent(
+        "ProbationOffenderEvent",
+        mapOf(
+            "crn" to primaryIdentifiers.primaryIdentifiers.crn,
+            "action" to offenderUpdate.action,
+            "source" to offenderUpdate.sourceTable,
+            "sourceId" to offenderUpdate.sourceRecordId.toString(),
+            "dateChanged" to offenderUpdate.dateChanged.format(DateTimeFormatter.ISO_DATE_TIME),
+        ),
+        null
     )
   }
 
