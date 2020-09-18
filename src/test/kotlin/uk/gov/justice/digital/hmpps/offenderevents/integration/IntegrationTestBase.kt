@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.offenderevents.integration
 
 import com.microsoft.applicationinsights.TelemetryClient
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.SpyBean
@@ -14,6 +16,11 @@ import uk.gov.justice.digital.hmpps.offenderevents.wiremock.OAuthExtension
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles(profiles = ["test"])
 abstract class IntegrationTestBase {
+
+  @BeforeEach
+  internal fun setUp() {
+    Mockito.reset(telemetryClient)
+  }
 
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired

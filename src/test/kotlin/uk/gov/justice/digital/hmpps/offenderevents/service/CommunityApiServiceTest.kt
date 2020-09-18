@@ -6,6 +6,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.put
+import com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -119,14 +121,14 @@ class CommunityApiServiceTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `get offender identifiers throws exception if not found`() {
+    fun `get offender identifiers returns null if not found`() {
       communityMockServer.stubFor(get("/secure/offenders/offenderId/99/identifiers").willReturn(
           aResponse()
               .withHeader("Content-Type", "application/json")
               .withBody("{\"error\": \"not found\"}")
               .withStatus(HTTP_NOT_FOUND)))
 
-      assertThatThrownBy { service.getOffenderIdentifiers(99L) }.isInstanceOf(WebClientResponseException.NotFound::class.java)
+      assertThat(service.getOffenderIdentifiers(99L)).isNull()
     }
 
     @Test
@@ -181,9 +183,50 @@ class CommunityApiServiceTest : IntegrationTestBase() {
       assertThatThrownBy { service.deleteOffenderUpdate(101L) }.isInstanceOf(WebClientResponseException.BadRequest::class.java)
     }
   }
+  @Nested
+  inner class MarkOffenderUpdateAsPermanentlyFailed {
+
+    @BeforeEach
+    fun `stub token`() {
+      oAuthMockServer.stubGrantToken()
+    }
+
+    @Test
+    fun `mark as failed calls endpoint`() {
+      communityMockServer.stubFor(put("/secure/offenders/update/101/markAsFailed").willReturn(
+          aResponse().withStatus(HTTP_OK)
+      ))
+
+      service.markOffenderUpdateAsPermanentlyFailed(101L)
+
+      communityMockServer.verify(putRequestedFor(urlEqualTo("/secure/offenders/update/101/markAsFailed")).withHeader("Authorization", equalTo("Bearer ABCDE")))
+    }
+
+    @Test
+    fun `mark as failed with not found`() {
+      communityMockServer.stubFor(put("/secure/offenders/update/101/markAsFailed").willReturn(
+          aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withBody("{\"error\": \"not found\"}")
+              .withStatus(HTTP_NOT_FOUND)
+      ))
+
+      assertThatThrownBy { service.markOffenderUpdateAsPermanentlyFailed(101L) }.isInstanceOf(WebClientResponseException.NotFound::class.java)
+    }
+
+    @Test
+    fun `mark as failed throws exception for other types of http responses`() {
+      communityMockServer.stubFor(put("/secure/offenders/update/101/markAsFailed").willReturn(
+          aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withStatus(HTTP_BAD_REQUEST)))
+
+      assertThatThrownBy { service.markOffenderUpdateAsPermanentlyFailed(101L) }.isInstanceOf(WebClientResponseException.BadRequest::class.java)
+    }
+  }
 
   private fun createOffenderUpdate(): OffenderUpdate {
-    return OffenderUpdate(1L, LocalDateTime.now(), "UPSERT", 2L, "OFFENDER", 99L, "INPROGRESS")
+    return OffenderUpdate(1L, LocalDateTime.now(), "UPSERT", 2L, "OFFENDER", 99L, "INPROGRESS", false)
   }
 
   private fun createOffenderUpdate(offenderUpdate: OffenderUpdate) = """

@@ -28,22 +28,30 @@ class OffenderUpdatePollService(
   @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
   fun pollForOffenderUpdates() {
     do {
-      val update: Any? = communityApiService.getOffenderUpdate()
-          .also { logOffenderFound(it) }
-          ?.let { publishMessage(it, communityApiService.getOffenderIdentifiers(it.offenderId)) }
-          ?.also { communityApiService.deleteOffenderUpdate(it.offenderDeltaId) }
+      val update: OffenderUpdate? = communityApiService.getOffenderUpdate()
+          ?.also { logOffenderFound(it) }
+          ?.apply { processUpdate(this) }
     } while (update != null)
 
   }
 
-  private fun publishMessage(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers): OffenderUpdate {
+  private fun processUpdate(offenderUpdate: OffenderUpdate) =
+      communityApiService.getOffenderIdentifiers(offenderUpdate.offenderId)?.run {
+        publishMessage(offenderUpdate, this)
+        communityApiService.deleteOffenderUpdate(offenderUpdate.offenderDeltaId)
+      } ?: run {
+        if (offenderUpdate.failedUpdate) {
+          communityApiService.markOffenderUpdateAsPermanentlyFailed(offenderUpdate.offenderDeltaId)
+        }
+      }
+
+  private fun publishMessage(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers) {
     NotificationMessagingTemplate(snsAwsClient).convertAndSend(
         TopicMessageChannel(snsAwsClient, topicArn),
         toOffenderEventJson(primaryIdentifiers),
         mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
     )
     recordAnalytics(offenderUpdate, primaryIdentifiers)
-    return offenderUpdate
   }
 
   private fun recordAnalytics(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers) {
@@ -60,10 +68,8 @@ class OffenderUpdatePollService(
     )
   }
 
-  private fun logOffenderFound(it: OffenderUpdate?) {
-    log.info(
-        it?.let { "Found offender update for offenderId=${it.offenderId}" }
-            ?: "No offender update found")
+  private fun logOffenderFound(offenderUpdate: OffenderUpdate) {
+    log.info("Found offender update for offenderId=${offenderUpdate.offenderId}")
   }
 
   internal fun toOffenderEventJson(offenderIdentifiers: OffenderIdentifiers): String =

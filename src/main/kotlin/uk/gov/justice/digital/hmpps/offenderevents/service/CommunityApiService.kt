@@ -25,16 +25,25 @@ class CommunityApiService(
         .block()
   }
 
-  fun getOffenderIdentifiers(offenderId: Long): OffenderIdentifiers =
+  fun getOffenderIdentifiers(offenderId: Long): OffenderIdentifiers? =
       webClient.get()
           .uri("$communityApiUrl/secure/offenders/offenderId/$offenderId/identifiers")
           .retrieve()
           .bodyToMono(OffenderIdentifiers::class.java)
-          .block()!!
+          .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
+          .block()
 
   fun deleteOffenderUpdate(offenderDeltaId: Long) {
     webClient.delete()
         .uri("$communityApiUrl/secure/offenders/update/$offenderDeltaId")
+        .retrieve()
+        .toBodilessEntity()
+        .block()
+  }
+
+  fun markOffenderUpdateAsPermanentlyFailed(offenderDeltaId: Long) {
+    webClient.put()
+        .uri("$communityApiUrl/secure/offenders/update/$offenderDeltaId/markAsFailed")
         .retrieve()
         .toBodilessEntity()
         .block()
@@ -54,7 +63,8 @@ data class OffenderUpdate(
     val offenderDeltaId: Long,
     val sourceTable: String,
     val sourceRecordId: Long,
-    val status: String
+    val status: String,
+    val failedUpdate: Boolean
 )
 
 data class PrimaryIdentifiers(
