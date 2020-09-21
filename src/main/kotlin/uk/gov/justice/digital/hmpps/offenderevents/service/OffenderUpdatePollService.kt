@@ -42,6 +42,14 @@ class OffenderUpdatePollService(
       } ?: run {
         if (offenderUpdate.failedUpdate) {
           communityApiService.markOffenderUpdateAsPermanentlyFailed(offenderUpdate.offenderDeltaId)
+          telemetryClient.trackEvent(
+              "ProbationOffenderPermanentlyFailedEvent",
+              mapOf(
+                  "offenderDeltaId" to offenderUpdate.offenderDeltaId.toString(),
+                  "offenderId" to offenderUpdate.offenderId.toString()
+              ),
+              null
+          )
         }
       }
 
