@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.offenderevents.integration
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import com.google.gson.GsonBuilder
+import com.nhaarman.mockitokotlin2.check
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.isNull
 import com.nhaarman.mockitokotlin2.times
@@ -196,6 +197,22 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       CommunityApiExtension.communityApi.verifyMarkedAsFailed(1L)
       CommunityApiExtension.communityApi.verifyNotDeleteOffenderUpdate(1L)
+    }
+
+    @Test
+    internal fun `when an update is marked as permanently failed a telemetry event is raised`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, failedUpdate = true))
+      CommunityApiExtension.communityApi.stubPrimaryIdentifiersNotFound(102L)
+
+      offenderUpdatePollService.pollForOffenderUpdates()
+
+      verify(telemetryClient).trackEvent(
+          eq("ProbationOffenderPermanentlyFailedEvent"),
+          check {
+            assertThat(it).containsExactlyEntriesOf(mapOf("offenderDeltaId" to "1", "offenderId" to "102"))
+          },
+          isNull()
+      )
     }
   }
 
