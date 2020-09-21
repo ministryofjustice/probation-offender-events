@@ -3,9 +3,9 @@ package uk.gov.justice.digital.hmpps.offenderevents.integration
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import com.google.gson.GsonBuilder
-import com.nhaarman.mockitokotlin2.argThat
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.isNull
+import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.assertj.core.api.Assertions.assertThat
@@ -15,7 +15,8 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito
+import org.mockito.ArgumentCaptor
+import org.mockito.Captor
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.offenderevents.service.OffenderUpdate
 import uk.gov.justice.digital.hmpps.offenderevents.service.OffenderUpdatePollService
@@ -45,6 +46,9 @@ class PollCommunityApiTest : IntegrationTestBase() {
     )
     private val offenderDeltaIds = offenderUpdates.map { it.offenderDeltaId }
     private val offenderIds = offenderUpdates.map { it.offenderId }
+
+    @Captor
+    private lateinit var attributesCaptor: ArgumentCaptor<Map<String, String>>
 
     @BeforeEach
     fun setUp() {
@@ -126,18 +130,20 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
 
-      offenderIds.forEach { offenderId ->
-        verify(telemetryClient).trackEvent(
+      offenderIds.forEachIndexed { index, offenderId ->
+        verify(telemetryClient, times(offenderIds.size)).trackEvent(
             eq("ProbationOffenderEvent"),
-            argThat {
-              this.get("crn") == "CRN$offenderId" &&
-                  this.get("action") == "INSERT" &&
-                  this.get("source") == "OFFENDER" &&
-                  this.get("sourceId") == "345" &&
-                  this.get("dateChanged") == "2020-07-19T13:56:43"
-            },
+            attributesCaptor.capture(),
             isNull()
         )
+
+        assertThat(attributesCaptor.allValues[index]).containsAllEntriesOf(mapOf(
+            "crn" to "CRN$offenderId",
+            "action" to "INSERT",
+            "source" to "OFFENDER",
+            "sourceId" to "345",
+            "dateChanged" to "2020-07-19T13:56:43"
+        ))
       }
     }
   }
