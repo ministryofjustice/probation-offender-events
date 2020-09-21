@@ -4,8 +4,11 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.delete
 import com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.exactly
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.put
+import com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.junit.jupiter.api.extension.AfterAllCallback
@@ -82,6 +85,14 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
     }
   }
 
+  fun stubMarkAsFailed(vararg offenderDeltaIds: Long) {
+    offenderDeltaIds.forEach {
+      stubFor(put("/secure/offenders/update/$it/markAsFailed").willReturn(aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withStatus(200)))
+    }
+  }
+
   fun stubPrimaryIdentifiers(vararg offenderIds: Long) {
     offenderIds.forEach { offenderId ->
       stubFor(get("/secure/offenders/offenderId/${offenderId}/identifiers")
@@ -94,10 +105,29 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
     }
   }
 
+  fun stubPrimaryIdentifiersNotFound(vararg offenderIds: Long) {
+    offenderIds.forEach { offenderId ->
+      stubFor(get("/secure/offenders/offenderId/${offenderId}/identifiers")
+          .willReturn(
+              aResponse()
+                  .withHeader("Content-Type", "application/json")
+                  .withStatus(404)
+          )
+      )
+    }
+  }
+
   fun verifyPrimaryIdentifiersCalledWith(offenderId: Long) = this.verify(getRequestedFor(urlEqualTo("/secure/offenders/offenderId/${offenderId}/identifiers")))
 
-
   fun verifyOffenderUpdateDeleteCalledWith(offenderDeltaId: Long) = this.verify(deleteRequestedFor(urlEqualTo("/secure/offenders/update/${offenderDeltaId}")))
+
+  fun verifyNotMarkedAsFailed(offenderDeltaId: Long) = this.verify(exactly(0), putRequestedFor(urlEqualTo("/secure/offenders/update/$offenderDeltaId/markAsFailed")))
+
+  fun verifyNotDeleteOffenderUpdate(offenderDeltaId: Long) = this.verify(exactly(0), deleteRequestedFor(urlEqualTo("/secure/offenders/update/$offenderDeltaId")))
+
+  fun verifyMarkedAsFailed(offenderDeltaId: Long) = this.verify(putRequestedFor(urlEqualTo("/secure/offenders/update/$offenderDeltaId/markAsFailed")))
+
+  fun verifyDeleteOffenderUpdate(offenderDeltaId: Long) = this.verify(deleteRequestedFor(urlEqualTo("/secure/offenders/update/$offenderDeltaId")))
 
 
   fun countNextUpdateRequests(): Int = findAll(getRequestedFor(urlEqualTo("/secure/offenders/nextUpdate"))).count()
@@ -110,7 +140,8 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
       "offenderDeltaId": ${offenderUpdate.offenderDeltaId},
       "sourceTable": "${offenderUpdate.sourceTable}",
       "sourceRecordId": ${offenderUpdate.sourceRecordId},
-      "status": "${offenderUpdate.status}"
+      "status": "${offenderUpdate.status}",
+      "failedUpdate": ${offenderUpdate.failedUpdate}
     }
   """.trimIndent()
 
