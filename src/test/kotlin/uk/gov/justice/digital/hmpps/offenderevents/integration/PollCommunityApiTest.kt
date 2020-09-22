@@ -67,35 +67,41 @@ class PollCommunityApiTest : IntegrationTestBase() {
     }
 
     @Test
-    fun `3 messages are added to the queue`() {
+    fun `2 offender events are written to the topic for each of the 3 updates`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 6 }
     }
 
     @Test
-    fun `3 offender details are retrieved from community api`() {
+    fun `offender primary identifiers are retrieved from community api for each update`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
+      await untilCallTo { CommunityApiExtension.communityApi.countGetPrimaryIdentifiersRequests() } matches { it == offenderDeltaIds.size }
+
       offenderIds.forEach {
         CommunityApiExtension.communityApi.verifyPrimaryIdentifiersCalledWith(it)
       }
     }
 
     @Test
-    fun `3 offender events are written to the topic`() {
+    fun `each offender update event written contains the CRN, offenderId and optionally the noms number`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * 2 }
 
       offenderIds.forEach {
-        val messageBody = awsSqsClient.receiveMessage(queueUrl).messages[0].body
-        val message = gson.fromJson(messageBody, Message::class.java)
+        val genericMessage = getNextMessageOnTestQueue()
 
-        assertThatJson(message.Message).node("offenderId").isEqualTo(it)
-        assertThatJson(message.Message).node("crn").isEqualTo("CRN$it")
-        assertThatJson(message.Message).node("nomsNumber").isEqualTo("NOMS$it")
+        assertThatJson(genericMessage.Message).node("offenderId").isEqualTo(it)
+        assertThatJson(genericMessage.Message).node("crn").isEqualTo("CRN$it")
+        assertThatJson(genericMessage.Message).node("nomsNumber").isEqualTo("NOMS$it")
+
+        val specificMessage = getNextMessageOnTestQueue()
+
+        assertThatJson(specificMessage.Message).node("offenderId").isEqualTo(it)
+        assertThatJson(specificMessage.Message).node("crn").isEqualTo("CRN$it")
+        assertThatJson(specificMessage.Message).node("nomsNumber").isEqualTo("NOMS$it")
       }
     }
 
@@ -103,12 +109,11 @@ class PollCommunityApiTest : IntegrationTestBase() {
     fun `all messages have attributes for the event type and source`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * 2  }
 
-      repeat(3) {
-        val messageBody = awsSqsClient.receiveMessage(queueUrl).messages[0].body
-        val message = gson.fromJson(messageBody, Message::class.java)
-        assertThat(message.MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
+      repeat(offenderDeltaIds.size * 2 ) {
+        val message = getNextMessageOnTestQueue()
+        assertThat(message.MessageAttributes.eventType.Value).isNotBlank
         assertThat(message.MessageAttributes.source.Value).isEqualTo("delius")
       }
     }
@@ -117,7 +122,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
     fun `3 offender details are deleted using community api`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
+      await untilCallTo { CommunityApiExtension.communityApi.countDeleteOffenderUpdateRequests() } matches { it == offenderDeltaIds.size }
 
       offenderDeltaIds.forEach {
         CommunityApiExtension.communityApi.verifyOffenderUpdateDeleteCalledWith(it)
@@ -129,7 +134,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
     fun `3 telemetry events will be raised`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 3 }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * 2}
 
       offenderIds.forEachIndexed { index, offenderId ->
         verify(telemetryClient, times(offenderIds.size)).trackEvent(
@@ -149,6 +154,104 @@ class PollCommunityApiTest : IntegrationTestBase() {
       }
     }
   }
+
+  @Nested
+  inner class EventTypes {
+    @BeforeEach
+    fun setUp() {
+      CommunityApiExtension.communityApi.stubPrimaryIdentifiers(102L)
+      CommunityApiExtension.communityApi.stubDeleteOffenderUpdate(1L)
+      awsSqsClient.purgeQueue(PurgeQueueRequest(queueUrl))
+    }
+
+    @Test
+    internal fun `when source is OFFENDER_ADDRESS than address event is raised along with generic event`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "OFFENDER_ADDRESS"))
+
+      offenderUpdatePollService.pollForOffenderUpdates()
+
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_ADDRESS_CHANGED")
+    }
+    @Test
+    internal fun `when source is OFFENDER than offender details event is raised along with generic event`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "OFFENDER"))
+
+      offenderUpdatePollService.pollForOffenderUpdates()
+
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_DETAILS_CHANGED")
+
+    }
+
+    @Test
+    internal fun `when source is OFFENDER_MANAGER than offender manager event is raised along with generic event`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "OFFENDER_MANAGER"))
+
+      offenderUpdatePollService.pollForOffenderUpdates()
+
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_MANAGER_CHANGED")
+    }
+
+    @Test
+    internal fun `when source is ALIAS than offender alias event is raised along with generic event`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "ALIAS"))
+      offenderUpdatePollService.pollForOffenderUpdates()
+
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_ALIAS_CHANGED")
+    }
+
+    @Test
+    internal fun `when source is OFFICER than offender officer event is raised along with generic event`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "OFFICER"))
+
+      offenderUpdatePollService.pollForOffenderUpdates()
+
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_OFFICER_CHANGED")
+    }
+
+    @Test
+    internal fun `when source is unknown than offender event containing table name is raised along with generic event`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "BANANAS"))
+
+      offenderUpdatePollService.pollForOffenderUpdates()
+
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_BANANAS_CHANGED")
+    }
+
+    @Test
+    internal fun `source id is added to event for the sepecifc events`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "ALIAS", sourceRecordId = 99L))
+
+      offenderUpdatePollService.pollForOffenderUpdates()
+
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+      getNextMessageOnTestQueue()
+
+      val message = getNextMessageOnTestQueue()
+      assertThatJson(message.Message).node("sourceId").isEqualTo(99L)
+    }
+  }
+
+  private fun getNextMessageOnTestQueue() =
+      gson.fromJson(awsSqsClient.receiveMessage(queueUrl).messages[0].body, Message::class.java)
+
 
   @Nested
   inner class ExceptionScenarios {
@@ -183,7 +286,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 1 }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 1 * 2 }
 
       CommunityApiExtension.communityApi.verifyNotDeleteOffenderUpdate(1L)
       CommunityApiExtension.communityApi.verifyDeleteOffenderUpdate(2L)
@@ -223,13 +326,13 @@ class PollCommunityApiTest : IntegrationTestBase() {
   }
 }
 
-private fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long, failedUpdate: Boolean = false) = OffenderUpdate(
+private fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long, failedUpdate: Boolean = false, sourceTable : String = "OFFENDER", sourceRecordId : Long = 345L) = OffenderUpdate(
     offenderId = offenderId,
     offenderDeltaId = offenderDeltaId,
     dateChanged = LocalDateTime.parse("2020-07-19T13:56:43"),
     action = "INSERT",
-    sourceTable = "OFFENDER",
-    sourceRecordId = 345L,
+    sourceTable = sourceTable,
+    sourceRecordId = sourceRecordId,
     status = "INPROGRESS",
     failedUpdate = failedUpdate
 )
