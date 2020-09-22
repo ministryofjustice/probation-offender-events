@@ -145,6 +145,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
             "sourceId" to "345",
             "dateChanged" to "2020-07-19T13:56:43"
         ))
+        assertThat(attributesCaptor.allValues[index]).containsKey("timeSinceUpdateSeconds")
       }
     }
   }

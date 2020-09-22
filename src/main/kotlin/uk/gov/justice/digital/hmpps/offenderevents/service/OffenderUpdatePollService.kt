@@ -11,6 +11,8 @@ import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplat
 import org.springframework.cloud.aws.messaging.core.TopicMessageChannel
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import java.time.Duration
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
@@ -71,6 +73,7 @@ class OffenderUpdatePollService(
             "source" to offenderUpdate.sourceTable,
             "sourceId" to offenderUpdate.sourceRecordId.toString(),
             "dateChanged" to offenderUpdate.dateChanged.format(DateTimeFormatter.ISO_DATE_TIME),
+            "timeSinceUpdateSeconds" to Duration.between(offenderUpdate.dateChanged, LocalDateTime.now()).toSeconds().toString()
         ),
         null
     )
