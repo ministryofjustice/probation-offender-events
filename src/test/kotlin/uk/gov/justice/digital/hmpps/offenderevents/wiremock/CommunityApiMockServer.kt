@@ -10,6 +10,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.put
 import com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo
+import com.github.tomakehurst.wiremock.client.WireMock.urlMatching
 import com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
@@ -131,6 +132,10 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
 
 
   fun countNextUpdateRequests(): Int = findAll(getRequestedFor(urlEqualTo("/secure/offenders/nextUpdate"))).count()
+
+  fun countGetPrimaryIdentifiersRequests(): Int = findAll(getRequestedFor(urlMatching("/secure/offenders/offenderId/[0-9]*/identifiers"))).count()
+
+  fun countDeleteOffenderUpdateRequests(): Int = findAll(deleteRequestedFor(urlMatching("/secure/offenders/update/[0-9]*"))).count()
 
   private fun toJson(offenderUpdate: OffenderUpdate) = """
     {

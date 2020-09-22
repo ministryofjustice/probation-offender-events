@@ -18,14 +18,16 @@ import java.time.format.DateTimeFormatter
 @Service
 class OffenderUpdatePollService(
     private val communityApiService: CommunityApiService,
-    private val snsAwsClient: AmazonSNS,
-    @Value("\${sns.topic.arn}") private val topicArn: String,
+    snsAwsClient: AmazonSNS,
+    @Value("\${sns.topic.arn}") topicArn: String,
     private val objectMapper: ObjectMapper,
     private val telemetryClient: TelemetryClient,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
+  private val notificationMessagingTemplate = NotificationMessagingTemplate(snsAwsClient)
+  private val topicMessageChannel = TopicMessageChannel(snsAwsClient, topicArn)
 
   @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
   fun pollForOffenderUpdates() {
@@ -56,12 +58,25 @@ class OffenderUpdatePollService(
       }
 
   private fun publishMessage(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers) {
-    NotificationMessagingTemplate(snsAwsClient).convertAndSend(
-        TopicMessageChannel(snsAwsClient, topicArn),
+    notificationMessagingTemplate.convertAndSend(
+        topicMessageChannel,
         toOffenderEventJson(primaryIdentifiers),
         mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
     )
+    notificationMessagingTemplate.convertAndSend(
+        topicMessageChannel,
+        toOffenderEventJson(primaryIdentifiers, offenderUpdate),
+        mapOf("eventType" to sourceToEventType(offenderUpdate.sourceTable), "source" to "delius")
+    )
     recordAnalytics(offenderUpdate, primaryIdentifiers)
+  }
+
+  private fun sourceToEventType(sourceTable: String): String = when(sourceTable) {
+    "ALIAS" -> "OFFENDER_ALIAS_CHANGED"
+    "OFFENDER" -> "OFFENDER_DETAILS_CHANGED"
+    "OFFENDER_MANAGER" -> "OFFENDER_MANAGER_CHANGED"
+    "OFFENDER_ADDRESS" -> "OFFENDER_ADDRESS_CHANGED"
+    else -> "OFFENDER_${sourceTable}_CHANGED"
   }
 
   private fun recordAnalytics(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers) {
@@ -83,16 +98,17 @@ class OffenderUpdatePollService(
     log.info("Found offender update for offenderId=${offenderUpdate.offenderId}")
   }
 
-  internal fun toOffenderEventJson(offenderIdentifiers: OffenderIdentifiers): String =
+  internal fun toOffenderEventJson(offenderIdentifiers: OffenderIdentifiers, offenderUpdate: OffenderUpdate? = null): String =
       objectMapper.writeValueAsString(
           OffenderEvent(
               offenderId = offenderIdentifiers.offenderId,
               crn = offenderIdentifiers.primaryIdentifiers.crn,
-              nomsNumber = offenderIdentifiers.primaryIdentifiers.nomsNumber
+              nomsNumber = offenderIdentifiers.primaryIdentifiers.nomsNumber,
+              sourceId = offenderUpdate?.sourceRecordId
           ))
 
 
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class OffenderEvent(val offenderId: Long, val crn: String, val nomsNumber: String? = null)
+data class OffenderEvent(val offenderId: Long, val crn: String, val nomsNumber: String? = null, val sourceId: Long? = null)
