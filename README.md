@@ -5,7 +5,7 @@
 
 ### Generate events for the offender changes in probation
 
-Background service for generating events for the **probation-events-topic** from Delius changes indicating a change to an offender in probation
+Background service for generating events for the **probation-offender-events** from Delius changes indicating a change to an offender in probation
 
 Events are generated when this service detects a change in Delius via the Delius OFFENDER_DELTA table. Rows are added via Delius database triggers. These triggers are currently limited changes to core offender changes; e.g changes to the management of a sentence will not typically raise an event.
 
@@ -26,7 +26,7 @@ The specific events currently being raised are
 
 ### Topic subscription
 
-Clients are expected to use a SQS AWS queue to receive events with queue subscribed to **probation-events-topic**.
+Clients are expected to use a SQS AWS queue to receive events with the queue subscribed to **probation-offender-events** topic.
 
 Clients can subscribe to one or more events. A typical subscription could be:
 
@@ -80,14 +80,9 @@ Depending on the speed of your machine when running all services you may need to
 
 ### Running tests
 
-#### Test containers
-
-`./gradlew test` will run all tests and will by default use test containers to start any required docker containers, e.g localstack
-Note that TestContainers will start Elastic Search in its own container rather than using the one built into localstack.
-
 #### External localstack
 
-`SNS_PROVIDER=localstack ./gradlew test` will override the default behaviour and will expect localstack to already be started externally. In this mode the following services must be started `sqs,sns,es`
+`SNS_PROVIDER=localstack ./gradlew check` will override the default behaviour and will expect localstack to already be started externally. In this mode the following services must be started `sqs,sns,es`
 
 `docker-compose up localstack` will start the required AWS services.  
 
@@ -96,7 +91,7 @@ Note that TestContainers will start Elastic Search in its own container rather t
 Recommended regression tests is as follows:
 
 * Trigger a change in Delius, e.g for any offender change their date of birth
-* With in Delius search for the offender in the BETA National Search - you should be able to search using the updated data of birth
+* Within Delius search for the offender in the BETA National Search - you should be able to search using the updated data of birth
 * Check [Offender events dev tool](https://offender-events-ui-dev.prison.service.justice.gov.uk/messages) that at least 2 events are raised, e.g. *OFFENDER_DETAILS_CHANGED* and *OFFENDER_CHANGED*
 
 ## Support
