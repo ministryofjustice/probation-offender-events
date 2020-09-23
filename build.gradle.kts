@@ -15,6 +15,10 @@ dependencies {
 
 	implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.1.RELEASE")
 
+	implementation("org.springdoc:springdoc-openapi-ui:1.4.3")
+	implementation("org.springdoc:springdoc-openapi-data-rest:1.4.3")
+	implementation("org.springdoc:springdoc-openapi-kotlin:1.4.3")
+
 	testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.1")
 	testImplementation("org.awaitility:awaitility-kotlin:4.0.3")
 	testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.18.1")

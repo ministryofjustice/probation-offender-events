@@ -24,6 +24,8 @@ import uk.gov.justice.digital.hmpps.offenderevents.service.OffenderUpdatePollSer
 import uk.gov.justice.digital.hmpps.offenderevents.wiremock.CommunityApiExtension
 import java.time.LocalDateTime
 
+const val numberOfExpectedMessagesPerOffenderUpdate = 2
+
 
 class PollCommunityApiTest : IntegrationTestBase() {
 
@@ -88,7 +90,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
     fun `each offender update event written contains the CRN, offenderId and optionally the noms number`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * 2 }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * numberOfExpectedMessagesPerOffenderUpdate }
 
       offenderIds.forEach {
         val genericMessage = getNextMessageOnTestQueue()
@@ -109,7 +111,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
     fun `all messages have attributes for the event type and source`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * 2  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * numberOfExpectedMessagesPerOffenderUpdate  }
 
       repeat(offenderDeltaIds.size * 2 ) {
         val message = getNextMessageOnTestQueue()
@@ -134,7 +136,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
     fun `3 telemetry events will be raised`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * 2}
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * numberOfExpectedMessagesPerOffenderUpdate}
 
       offenderIds.forEachIndexed { index, offenderId ->
         verify(telemetryClient, times(offenderIds.size)).trackEvent(
@@ -170,7 +172,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_ADDRESS_CHANGED")
@@ -181,7 +183,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_DETAILS_CHANGED")
@@ -194,7 +196,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_MANAGER_CHANGED")
@@ -205,7 +207,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "ALIAS"))
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_ALIAS_CHANGED")
@@ -217,7 +219,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_OFFICER_CHANGED")
@@ -229,7 +231,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_BANANAS_CHANGED")
@@ -241,7 +243,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 2  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
       getNextMessageOnTestQueue()
 
       val message = getNextMessageOnTestQueue()
@@ -286,7 +288,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 1 * 2 }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
 
       CommunityApiExtension.communityApi.verifyNotDeleteOffenderUpdate(1L)
       CommunityApiExtension.communityApi.verifyDeleteOffenderUpdate(2L)
