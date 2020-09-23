@@ -149,6 +149,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
             "crn" to "CRN$offenderId",
             "action" to "INSERT",
             "source" to "OFFENDER",
+            "offenderDeltaId" to offenderDeltaIds[index].toString(),
             "sourceId" to "345",
             "dateChanged" to "2020-07-19T13:56:43"
         ))
@@ -238,7 +239,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
     }
 
     @Test
-    internal fun `source id is added to event for the sepecifc events`() {
+    internal fun `source id is added to event for the specific events`() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "ALIAS", sourceRecordId = 99L))
 
       offenderUpdatePollService.pollForOffenderUpdates()
@@ -248,6 +249,19 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       val message = getNextMessageOnTestQueue()
       assertThatJson(message.Message).node("sourceId").isEqualTo(99L)
+    }
+
+    @Test
+    internal fun `event date time is added to event for the specific events`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "ALIAS", dateChanged = LocalDateTime.parse("2020-07-19T18:23:12")))
+
+      offenderUpdatePollService.pollForOffenderUpdates()
+
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
+      getNextMessageOnTestQueue()
+
+      val message = getNextMessageOnTestQueue()
+      assertThatJson(message.Message).node("eventDatetime").isEqualTo("2020-07-19T18:23:12")
     }
   }
 
@@ -328,10 +342,10 @@ class PollCommunityApiTest : IntegrationTestBase() {
   }
 }
 
-private fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long, failedUpdate: Boolean = false, sourceTable : String = "OFFENDER", sourceRecordId : Long = 345L) = OffenderUpdate(
+private fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long, failedUpdate: Boolean = false, sourceTable : String = "OFFENDER", sourceRecordId : Long = 345L, dateChanged : LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43")) = OffenderUpdate(
     offenderId = offenderId,
     offenderDeltaId = offenderDeltaId,
-    dateChanged = LocalDateTime.parse("2020-07-19T13:56:43"),
+    dateChanged = dateChanged,
     action = "INSERT",
     sourceTable = sourceTable,
     sourceRecordId = sourceRecordId,
