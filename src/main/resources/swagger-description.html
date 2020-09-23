@@ -1,0 +1,38 @@
+<h3>Generate events for the offender changes in probation</h3>
+<p>Background service for generating events for the <b>probation-events-topic</b> from Delius changes indicating a change to an offender in probation</p>
+<p>
+    Events are generated when this service detects a change in Delius via the Delius OFFENDER_DELTA table. Rows are added via Delius database triggers. These triggers are currently
+    limited changes to core offender changes; e.g changes to the management of a sentence will not typically raise an event.
+</p>
+<p>
+    For each change detected two events will be raised:
+    <ul>
+        <li>a generic event <b>OFFENDER_CHANGED</b></li>
+        <li>a more specific event with greater detail on what has changed: e.g <b>OFFENDER_ALIAS_CHANGED</b></li>
+    </ul>
+    We recommend subscribing to the specific events, the <b>OFFENDER_CHANGED</b> is deprecated and kept only for backward compatibility with existing subscribers.
+</p>
+<p>
+    The specific events currently being raised are
+    <ul>
+        <li><b>OFFENDER_ADDRESS_CHANGED</b> is raised when an offender's address is changed</li>
+        <li><b>OFFENDER_DETAILS_CHANGED</b> is raised when offender's details has changed, e.g. date of birth</li>
+        <li><b>OFFENDER_MANAGER_CHANGED</b> is raised when an offender manager is allocated to the offender</li>
+        <li><b>OFFENDER_ALIAS_CHANGED</b> is raised when a alias is changed</li>
+        <li><b>OFFENDER_OFFICER_CHANGED</b> is raised when a current offender manager name changes</li>
+    </ul>
+</p>
+<h3>Topic subscription</h3>
+<p>Clients are expected to use a SQS AWS queue to receive events with queue subscribed to <b>probation-events-topic</b>. </p>
+<p>Clients can subscribe to one or more events. A typical subscription could be:</p>
+<pre>
+    resource "aws_sns_topic_subscription" "my_probation_subscription" {
+    provider      = aws.london
+    topic_arn     = module.probation_offender_events.topic_arn
+    protocol      = "sqs"
+    endpoint      = module.my_queue.sqs_arn
+    filter_policy = "{\"eventType\":[ \"OFFENDER_DETAILS_CHANGED\", \"OFFENDER_ADDRESS_CHANGED\"] }"
+    }
+
+</pre>
+<p>The DPS Tech Team will create the queue and subscription on your behalf. If you are using the MoJ Cloud Platform we will need your namespace to send secrets there for your new queue.</p>
