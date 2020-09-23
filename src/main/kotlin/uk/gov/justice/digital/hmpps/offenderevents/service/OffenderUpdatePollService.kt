@@ -85,10 +85,12 @@ class OffenderUpdatePollService(
         mapOf(
             "crn" to primaryIdentifiers.primaryIdentifiers.crn,
             "action" to offenderUpdate.action,
+            "offenderDeltaId" to offenderUpdate.offenderDeltaId.toString(),
             "source" to offenderUpdate.sourceTable,
             "sourceId" to offenderUpdate.sourceRecordId.toString(),
             "dateChanged" to offenderUpdate.dateChanged.format(DateTimeFormatter.ISO_DATE_TIME),
-            "timeSinceUpdateSeconds" to Duration.between(offenderUpdate.dateChanged, LocalDateTime.now()).toSeconds().toString()
+            "timeSinceUpdateSeconds" to Duration.between(offenderUpdate.dateChanged, LocalDateTime.now()).toSeconds()
+                .toString()
         ),
         null
     )
@@ -103,6 +105,7 @@ class OffenderUpdatePollService(
           OffenderEvent(
               offenderId = offenderIdentifiers.offenderId,
               crn = offenderIdentifiers.primaryIdentifiers.crn,
+              eventDatetime = offenderUpdate?.dateChanged,
               nomsNumber = offenderIdentifiers.primaryIdentifiers.nomsNumber,
               sourceId = offenderUpdate?.sourceRecordId
           ))
@@ -111,4 +114,4 @@ class OffenderUpdatePollService(
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class OffenderEvent(val offenderId: Long, val crn: String, val nomsNumber: String? = null, val sourceId: Long? = null)
+data class OffenderEvent(val offenderId: Long, val crn: String, val nomsNumber: String? = null, val sourceId: Long? = null, val eventDatetime: LocalDateTime?)
