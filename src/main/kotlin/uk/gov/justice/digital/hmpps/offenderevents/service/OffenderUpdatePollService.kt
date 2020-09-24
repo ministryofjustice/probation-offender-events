@@ -29,15 +29,14 @@ class OffenderUpdatePollService(
   private val notificationMessagingTemplate = NotificationMessagingTemplate(snsAwsClient)
   private val topicMessageChannel = TopicMessageChannel(snsAwsClient, topicArn)
 
-  @Scheduled(fixedDelayString = "\${random.int(\${offenderUpdatePoll.fixedDelay.max.ms})}")
+  @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
   fun pollForOffenderUpdates() {
-    log.info(">>>>>>>>>>>>>>>>> poll started ${LocalDateTime.now()} <<<<<<<<<<<<<<<<<<<")
     do {
       val update: OffenderUpdate? = communityApiService.getOffenderUpdate()
           ?.also { logOffenderFound(it) }
           ?.apply { processUpdate(this) }
     } while (update != null)
-    log.info(">>>>>>>>>>>>>>>>> poll ended ${LocalDateTime.now()} <<<<<<<<<<<<<<<<<<<")
+
   }
 
   private fun processUpdate(offenderUpdate: OffenderUpdate) =

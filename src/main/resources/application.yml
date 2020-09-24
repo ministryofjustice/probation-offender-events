@@ -70,7 +70,5 @@ sns:
   provider: aws
 
 offenderUpdatePoll:
-  fixedDelay:
-    min.ms: 5000
-    max.ms: 15000
-  enabled: false
+  fixedDelay.ms: ${random.int[5000,15000]}
+  enabled: true
