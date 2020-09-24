@@ -10,8 +10,14 @@ spring:
 oauth:
   endpoint.url: http://localhost:8090/auth
   client:
-    id: probation-offender-events-client
+    id: probation-offender-search-indexer-client
     secret: clientsecret
 
 community:
   endpoint.url: http://localhost:8096
+
+offenderUpdatePoll:
+  fixedDelay:
+    min.ms: 5000
+    max.ms: 15000
+  enabled: true
