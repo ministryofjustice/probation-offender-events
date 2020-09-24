@@ -20,6 +20,7 @@ env:
   JAVA_OPTS: "-Xmx512m"
   OAUTH_ENDPOINT_URL: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
   COMMUNITY_ENDPOINT_URL: "https://community-api-secure.pre-prod.delius.probation.hmpps.dsd.io"
+  OFFENDERUPDATEPOLL_ENABLED: "true"
 
 whitelist:
   office: "217.33.148.210/32"
