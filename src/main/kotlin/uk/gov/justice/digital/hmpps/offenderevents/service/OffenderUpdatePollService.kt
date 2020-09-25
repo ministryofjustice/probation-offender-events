@@ -4,6 +4,8 @@ import com.amazonaws.services.sns.AmazonSNS
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -22,15 +24,32 @@ class OffenderUpdatePollService(
     @Value("\${sns.topic.arn}") topicArn: String,
     private val objectMapper: ObjectMapper,
     private val telemetryClient: TelemetryClient,
+    meterRegistry: MeterRegistry
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
   private val notificationMessagingTemplate = NotificationMessagingTemplate(snsAwsClient)
   private val topicMessageChannel = TopicMessageChannel(snsAwsClient, topicArn)
+  private val pollCount  = Counter.builder("offender.poll")
+      .description("The number of polls")
+      .register(meterRegistry)
+  private val updatesReadCount  = Counter.builder("offender.updates")
+      .tag("type", "read")
+      .description("The number of updates read")
+      .register(meterRegistry)
+  private val updatesFailedCount  = Counter.builder("offender.updates")
+      .tag("type", "failed")
+      .description("The number of updates failed")
+      .register(meterRegistry)
+  private val updatesPublishedCount  = Counter.builder("offender.updates")
+      .tag("type", "published")
+      .description("The number of updates published")
+      .register(meterRegistry)
 
   @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
   fun pollForOffenderUpdates() {
+    pollCount.increment()
     do {
       val update: OffenderUpdate? = communityApiService.getOffenderUpdate()
           ?.also { logOffenderFound(it) }
@@ -54,6 +73,7 @@ class OffenderUpdatePollService(
               ),
               null
           )
+          updatesFailedCount.increment()
         }
       }
 
@@ -62,12 +82,12 @@ class OffenderUpdatePollService(
         topicMessageChannel,
         toOffenderEventJson(primaryIdentifiers),
         mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
-    )
+    ).also { updatesPublishedCount.increment() }
     notificationMessagingTemplate.convertAndSend(
         topicMessageChannel,
         toOffenderEventJson(primaryIdentifiers, offenderUpdate),
         mapOf("eventType" to sourceToEventType(offenderUpdate.sourceTable), "source" to "delius")
-    )
+    ).also { updatesPublishedCount.increment() }
     recordAnalytics(offenderUpdate, primaryIdentifiers)
   }
 
@@ -98,6 +118,7 @@ class OffenderUpdatePollService(
 
   private fun logOffenderFound(offenderUpdate: OffenderUpdate) {
     log.info("Found offender update for offenderId=${offenderUpdate.offenderId}")
+    updatesReadCount.increment()
   }
 
   internal fun toOffenderEventJson(offenderIdentifiers: OffenderIdentifiers, offenderUpdate: OffenderUpdate? = null): String =
