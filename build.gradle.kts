@@ -15,6 +15,9 @@ dependencies {
 
 	implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.1.RELEASE")
 
+	implementation("io.micrometer:micrometer-registry-prometheus")
+	implementation("io.micrometer:micrometer-core")
+
 	implementation("org.springdoc:springdoc-openapi-ui:1.4.3")
 	implementation("org.springdoc:springdoc-openapi-data-rest:1.4.3")
 	implementation("org.springdoc:springdoc-openapi-kotlin:1.4.3")
