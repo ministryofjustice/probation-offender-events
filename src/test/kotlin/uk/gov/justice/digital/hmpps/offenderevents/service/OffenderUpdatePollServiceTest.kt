@@ -3,14 +3,14 @@ package uk.gov.justice.digital.hmpps.offenderevents.service
 import com.amazonaws.services.sns.AmazonSNS
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
-import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 
-@SpringBootTest(classes = [ObjectMapper::class, OffenderUpdatePollService::class])
+@SpringBootTest(classes = [ObjectMapper::class, OffenderUpdatePollService::class, SimpleMeterRegistry::class])
 class OffenderUpdatePollServiceTest {
 
   @Suppress("unused")
@@ -21,9 +21,6 @@ class OffenderUpdatePollServiceTest {
   @MockBean
   lateinit var amazonSNS: AmazonSNS
 
-  @Suppress("unused")
-  @MockBean
-  lateinit var meterRegistry: MeterRegistry
 
   @Suppress("unused")
   @MockBean
