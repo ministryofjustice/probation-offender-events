@@ -14,7 +14,7 @@ spec:
         message: Probation Offender Events has permanently marked an update as failed
         runbook_url: https://github.com/ministryofjustice/probation-offender-events/blob/main/README.md
       expr: |-
-        avg(rate(offender_updates_total{namespace="offender-events-dev", type="published"}[60m]) * 600 > 1) by (service)
+        offender_update_age_seconds_max{namespace="offender-events-dev"} > 4
       for: 1m
       labels:
         severity: digital-prison-service
