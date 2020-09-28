@@ -106,6 +106,10 @@ customEvents
 ```
 Typically, we expect the time between a change in Delius to the time a message is published, should be around 10 seconds.
 
+# Alerts
+
+## Slow Processing
+
 An alert will be raised if this time increases substantially.
 
 Number of events that have been raised can be found with 
@@ -128,3 +132,4 @@ customEvents
 ```
 These are events where the system cannot publish a message due to the offender no longer being accessible to the community-api, typically because no organisation is related to the offender, so they become "invisible".
 We would expect very few of these in any given month.
+
