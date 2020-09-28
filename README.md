@@ -96,7 +96,9 @@ Recommended regression tests is as follows:
 
 ## Support
 
-Performance of the polling can be checked with this Application Insights Query
+### AppInsights Queries
+
+#### Polling Performance
 ``` kusto
 customEvents
 | where name == "ProbationOffenderEvent"
@@ -104,15 +106,9 @@ customEvents
 | summarize max(update_age_seconds),min(update_age_seconds), avg(update_age_seconds) by bin(timestamp, 1m)
 | render columnchart with (kind = unstacked ) ;   
 ```
-Typically, we expect the time between a change in Delius to the time a message is published, should be around 10 seconds.
+Typically, we expect the time between a change in Delius to the time a message is published, should be around 10-15 seconds.
 
-# Alerts
-
-## Slow Processing
-
-An alert will be raised if this time increases substantially.
-
-Number of events that have been raised can be found with 
+#### Number of Events Raised 
 
 ``` kusto
 customEvents
@@ -122,8 +118,7 @@ customEvents
 ```
 Although 2 events will be published per update, only a single telemetry event will be raised.
 
-
-Number of changes that have been permanently marked as failed can be found with
+#### Number of Changes Permanently Failed
 
 ``` kusto
 customEvents
@@ -133,3 +128,20 @@ customEvents
 These are events where the system cannot publish a message due to the offender no longer being accessible to the community-api, typically because no organisation is related to the offender, so they become "invisible".
 We would expect very few of these in any given month.
 
+### Alerts
+
+#### Slow Processing
+
+We track the length of time from an offender delta record being created in Delius to the corresponding offender update event being published to the topic - in a Timer metric named `offender.update.age`.
+
+This metric is made available to Prometheus where a rule named `ProbationOffenderEventSlowProcessing` fires when the max update age is greater than the threshold (initially this was 60 seconds).
+
+If this alert fires then it indicates that the performance of the polling is degrading. You can view the polling performance [with this AppInsights query](#polling-performance).
+
+If the alert is a one-off but recovers quickly then it may have been a network blip or some temporary high volume - don't worry.
+
+If the alert persists then there are probably wider problems:
+* community-api may have suffered an outage and we are playing catchup - check its status. There's not much to do here other than wait for community-api to be fixed - we shouldn't lose any messages so this is ok.
+* There may be intermittent network problems preventing us from talking to community-api consistently - check Community API for excessive request failures, and check probation-offender-events for exceptions when calling community-api. 
+* We may be experiencing higher volumes than normal - check the  [number of events raised query](#number-of-events-raised) to see.  In this case consider temporarily scaling up the number of pods.
+* We may have introduced a bug - check for exceptions in probation-offender-events 

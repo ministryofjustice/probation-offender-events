@@ -21,7 +21,6 @@ class OffenderUpdatePollServiceTest {
   @MockBean
   lateinit var amazonSNS: AmazonSNS
 
-
   @Suppress("unused")
   @MockBean
   lateinit var telemetryClient: TelemetryClient
