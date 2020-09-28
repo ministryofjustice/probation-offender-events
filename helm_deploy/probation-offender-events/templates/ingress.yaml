@@ -18,7 +18,7 @@ metadata:
       server_tokens off;
       location /prometheus {
         deny all;
-        return 404;
+        return 401;
       }
 spec:
   tls:

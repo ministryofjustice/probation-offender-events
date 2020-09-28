@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.Timer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -45,6 +46,9 @@ class OffenderUpdatePollService(
   private val updatesPublishedCount  = Counter.builder("offender.updates")
       .tag("type", "published")
       .description("The number of updates published")
+      .register(meterRegistry)
+  private val ageOfOffenderUpdate = Timer.builder("offender.update.age" )
+      .description("The age of the update before being published")
       .register(meterRegistry)
 
   @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
@@ -100,6 +104,9 @@ class OffenderUpdatePollService(
   }
 
   private fun recordAnalytics(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers) {
+    val age = Duration.between(offenderUpdate.dateChanged, LocalDateTime.now())
+    ageOfOffenderUpdate.record(age)
+
     telemetryClient.trackEvent(
         "ProbationOffenderEvent",
         mapOf(
@@ -109,8 +116,7 @@ class OffenderUpdatePollService(
             "source" to offenderUpdate.sourceTable,
             "sourceId" to offenderUpdate.sourceRecordId.toString(),
             "dateChanged" to offenderUpdate.dateChanged.format(DateTimeFormatter.ISO_DATE_TIME),
-            "timeSinceUpdateSeconds" to Duration.between(offenderUpdate.dateChanged, LocalDateTime.now()).toSeconds()
-                .toString()
+            "timeSinceUpdateSeconds" to age.toSeconds().toString()
         ),
         null
     )
