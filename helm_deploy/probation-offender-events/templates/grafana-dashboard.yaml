@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: probation-offender-events-grafana-dashboard
+  name: poe-{{ .Release.Namespace }}-grafana-dashboard
   namespace: {{ .Release.Namespace }}
   labels:
     grafana_dashboard: ""
@@ -39,7 +39,7 @@ data:
           },
           "id": 14,
           "panels": [],
-          "title": "Publishing Offender Events",
+          "title": "Publishing Probation Offender Events",
           "type": "row"
         },
         {
