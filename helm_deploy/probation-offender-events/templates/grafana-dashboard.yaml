@@ -6,7 +6,7 @@ metadata:
   labels:
     grafana_dashboard: ""
 data:
-  probation-offender-events.json: |
+  poe-{{ .Release.Namespace }}.json: |
     {
       "annotations": {
         "list": [
@@ -25,6 +25,7 @@ data:
       },
       "editable": true,
       "gnetId": null,
+      "id": 65,
       "graphTooltip": 1,
       "links": [],
       "panels": [
