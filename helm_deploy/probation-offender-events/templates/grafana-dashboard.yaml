@@ -106,20 +106,20 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(rate(offender_updates_total{type=\"read\",namespace=\"${namespace}\",}[10m]))",
+              "expr": "sum(rate(offender_updates_total{type=\"read\",namespace=\"{{ .Release.Namespace }}\",}[10m]))",
               "interval": "5m",
               "legendFormat": "Requests/s",
               "refId": "C"
             },
             {
-              "expr": "sum(rate(offender_updates_total{type=\"published\",namespace=\"${namespace}\",}[10m]))",
+              "expr": "sum(rate(offender_updates_total{type=\"published\",namespace=\"{{ .Release.Namespace }}\",}[10m]))",
               "instant": false,
               "interval": "5m",
               "legendFormat": "Published Messages/s",
               "refId": "A"
             },
             {
-              "expr": "sum(rate(offender_updates_total{type=\"failed\",namespace=\"${namespace}\",}[10m]))",
+              "expr": "sum(rate(offender_updates_total{type=\"failed\",namespace=\"{{ .Release.Namespace }}\",}[10m]))",
               "interval": "5m",
               "legendFormat": "Failed Messages/s",
               "refId": "B"
@@ -214,13 +214,13 @@ data:
           "steppedLine": false,
           "targets": [
             {
-              "expr": "max(offender_update_age_seconds_max{namespace=\"${namespace}\",})",
+              "expr": "max(offender_update_age_seconds_max{namespace=\"{{ .Release.Namespace }}\",})",
               "interval": "5m",
               "legendFormat": "Max Age  (s)",
               "refId": "A"
             },
             {
-              "expr": "avg(offender_update_age_seconds_sum{namespace=\"${namespace}\",} / offender_update_age_seconds_count{namespace=\"${namespace}\",})",
+              "expr": "avg(offender_update_age_seconds_sum{namespace=\"{{ .Release.Namespace }}\",} / offender_update_age_seconds_count{namespace=\"${namespace}\",})",
               "interval": "5m",
               "legendFormat": "Average Age (s)",
               "refId": "B"
@@ -298,12 +298,13 @@ data:
             "12h",
             "24h",
             "2d",
+
             "7d",
             "30d"
         ]
       },
       "timezone": "browser",
-      "title": "Probation OffenderEvents",
-      "uid": "0vGGIpKMk",
+      "title": "Probation Offender Events ({{ .Release.Namespace }})",
+      "uid": "poe-{{ .Release.Namespace }}",
       "version": 1
     }
