@@ -145,3 +145,19 @@ If the alert persists then there are probably wider problems:
 * There may be intermittent network problems preventing us from talking to community-api consistently - check Community API for excessive request failures, and check probation-offender-events for exceptions when calling community-api. 
 * We may be experiencing higher volumes than normal - check the  [number of events raised query](#number-of-events-raised) to see.  In this case consider temporarily scaling up the number of pods.
 * We may have introduced a bug - check for exceptions in probation-offender-events 
+
+### Grafana
+
+There is a Grafana dashboard showing some key metrics such as the number of events published and time taken to process events. 
+
+The dashboard can be found in [Grafana](https://grafana.cloud-platform.service.justice.gov.uk/d/poe-offender-events-prod/probation-offender-events-offender-events-prod?orgId=1). 
+
+The source code for the dashboard can be found in a ConfigMap in the Helm template `grafana-dashboard.yaml`.
+
+The dashboard MUST be maintained in the ConfigMap but doing so manually would be too hard. So the following process should be used to update the dashboard:
+* Find the dev dashboard in [Grafana](https://grafana.cloud-platform.service.justice.gov.uk/d/poe-offender-events-dev/probation-offender-events-offender-events-dev?orgId=1)
+* Edit the dashboard as you see fit.  Note it is not possible to save the changes - this is fine
+* When happy, click on the Dashboard Settings icon (a wheel) and choose menu item `JSON Model`
+* Copy the JSON and use it to replace the existing JSON in the `grafana-dashboard.yaml` ConfigMap (make sure the indentation isn't changed!!!)
+* Search the JSON for namespace `offender-events-dev` and replace with the helm template placeholder `{{ .Release.Namespace }}`
+* Deploy the app as normal - the ConfigMap will be updated by Helm and some Cloud Platform magic will then update the dashboard from the ConfigMap
