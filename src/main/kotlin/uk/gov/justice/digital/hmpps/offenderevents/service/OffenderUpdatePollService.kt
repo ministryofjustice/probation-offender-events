@@ -3,10 +3,6 @@ package uk.gov.justice.digital.hmpps.offenderevents.service
 import com.amazonaws.services.sns.AmazonSNS
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.microsoft.applicationinsights.TelemetryClient
-import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.core.instrument.Timer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -14,9 +10,7 @@ import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplat
 import org.springframework.cloud.aws.messaging.core.TopicMessageChannel
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import java.time.Duration
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Service
 class OffenderUpdatePollService(
@@ -24,38 +18,20 @@ class OffenderUpdatePollService(
     snsAwsClient: AmazonSNS,
     @Value("\${sns.topic.arn}") topicArn: String,
     private val objectMapper: ObjectMapper,
-    private val telemetryClient: TelemetryClient,
-    meterRegistry: MeterRegistry
+    private val telemetryService: TelemetryService
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
   private val notificationMessagingTemplate = NotificationMessagingTemplate(snsAwsClient)
   private val topicMessageChannel = TopicMessageChannel(snsAwsClient, topicArn)
-  private val pollCount  = Counter.builder("offender.poll")
-      .description("The number of polls")
-      .register(meterRegistry)
-  private val updatesReadCount  = Counter.builder("offender.updates")
-      .tag("type", "read")
-      .description("The number of updates read")
-      .register(meterRegistry)
-  private val updatesFailedCount  = Counter.builder("offender.updates")
-      .tag("type", "failed")
-      .description("The number of updates failed")
-      .register(meterRegistry)
-  private val updatesPublishedCount  = Counter.builder("offender.updates")
-      .tag("type", "published")
-      .description("The number of updates published")
-      .register(meterRegistry)
-  private val ageOfOffenderUpdate = Timer.builder("offender.update.age" )
-      .description("The age of the update before being published")
-      .register(meterRegistry)
 
   @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
   fun pollForOffenderUpdates() {
-    pollCount.increment()
+    telemetryService.offenderUpdatesPolled()
     do {
       val update: OffenderUpdate? = communityApiService.getOffenderUpdate()
+          ?.also { telemetryService.offenderUpdateFound() }
           ?.also { logOffenderFound(it) }
           ?.apply { processUpdate(this) }
     } while (update != null)
@@ -69,15 +45,9 @@ class OffenderUpdatePollService(
       } ?: run {
         if (offenderUpdate.failedUpdate) {
           communityApiService.markOffenderUpdateAsPermanentlyFailed(offenderUpdate.offenderDeltaId)
-          telemetryClient.trackEvent(
-              "ProbationOffenderPermanentlyFailedEvent",
-              mapOf(
-                  "offenderDeltaId" to offenderUpdate.offenderDeltaId.toString(),
-                  "offenderId" to offenderUpdate.offenderId.toString()
-              ),
-              null
-          )
-          updatesFailedCount.increment()
+          telemetryService.offenderUpdatePermanentlyFailed(offenderUpdate)
+        } else {
+          telemetryService.offenderUpdateFailed()
         }
       }
 
@@ -86,13 +56,15 @@ class OffenderUpdatePollService(
         topicMessageChannel,
         toOffenderEventJson(primaryIdentifiers),
         mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
-    ).also { updatesPublishedCount.increment() }
+    ).also { telemetryService.offenderEventPublished() }
+
     notificationMessagingTemplate.convertAndSend(
         topicMessageChannel,
         toOffenderEventJson(primaryIdentifiers, offenderUpdate),
         mapOf("eventType" to sourceToEventType(offenderUpdate.sourceTable), "source" to "delius")
-    ).also { updatesPublishedCount.increment() }
-    recordAnalytics(offenderUpdate, primaryIdentifiers)
+    ).also { telemetryService.offenderEventPublished() }
+
+    telemetryService.allOffenderEventsPublished(offenderUpdate, primaryIdentifiers)
   }
 
   private fun sourceToEventType(sourceTable: String): String = when(sourceTable) {
@@ -103,28 +75,8 @@ class OffenderUpdatePollService(
     else -> "OFFENDER_${sourceTable}_CHANGED"
   }
 
-  private fun recordAnalytics(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers) {
-    val age = Duration.between(offenderUpdate.dateChanged, LocalDateTime.now())
-    ageOfOffenderUpdate.record(age)
-
-    telemetryClient.trackEvent(
-        "ProbationOffenderEvent",
-        mapOf(
-            "crn" to primaryIdentifiers.primaryIdentifiers.crn,
-            "action" to offenderUpdate.action,
-            "offenderDeltaId" to offenderUpdate.offenderDeltaId.toString(),
-            "source" to offenderUpdate.sourceTable,
-            "sourceId" to offenderUpdate.sourceRecordId.toString(),
-            "dateChanged" to offenderUpdate.dateChanged.format(DateTimeFormatter.ISO_DATE_TIME),
-            "timeSinceUpdateSeconds" to age.toSeconds().toString()
-        ),
-        null
-    )
-  }
-
   private fun logOffenderFound(offenderUpdate: OffenderUpdate) {
     log.info("Found offender update for offenderId=${offenderUpdate.offenderId}")
-    updatesReadCount.increment()
   }
 
   internal fun toOffenderEventJson(offenderIdentifiers: OffenderIdentifiers, offenderUpdate: OffenderUpdate? = null): String =
@@ -136,7 +88,6 @@ class OffenderUpdatePollService(
               nomsNumber = offenderIdentifiers.primaryIdentifiers.nomsNumber,
               sourceId = offenderUpdate?.sourceRecordId
           ))
-
 
 }
 
