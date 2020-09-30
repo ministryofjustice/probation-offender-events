@@ -25,7 +25,6 @@ data:
       },
       "editable": true,
       "gnetId": null,
-      "id": 65,
       "graphTooltip": 1,
       "links": [],
       "panels": [
@@ -115,7 +114,7 @@ data:
               "expr": "sum(rate(offender_updates_total{type=\"published\",namespace=\"{{ .Release.Namespace }}\",}[10m]))",
               "instant": false,
               "interval": "5m",
-              "legendFormat": "Published Messages/s",
+              "legendFormat": "Published Events/s",
               "refId": "A"
             },
             {
@@ -215,13 +214,13 @@ data:
           "targets": [
             {
               "expr": "max(offender_update_age_seconds_max{namespace=\"{{ .Release.Namespace }}\",})",
-              "interval": "5m",
-              "legendFormat": "Max Age  (s)",
+              "interval": "1m",
+              "legendFormat": "Max Age (s)",
               "refId": "A"
             },
             {
-              "expr": "avg(offender_update_age_seconds_sum{namespace=\"{{ .Release.Namespace }}\",} / offender_update_age_seconds_count{namespace=\"${namespace}\",})",
-              "interval": "5m",
+              "expr": "avg(offender_update_age_seconds_sum{namespace=\"{{ .Release.Namespace }}\",} / offender_update_age_seconds_count{namespace=\"{{ .Release.Namespace }}\",})",
+              "interval": "1m",
               "legendFormat": "Average Age (s)",
               "refId": "B"
             }
@@ -298,7 +297,6 @@ data:
             "12h",
             "24h",
             "2d",
-
             "7d",
             "30d"
         ]
