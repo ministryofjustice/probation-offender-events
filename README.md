@@ -2,6 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/ministryofjustice/probation-offender-events/tree/main.svg?style=svg)](https://circleci.com/gh/ministryofjustice/probation-offender-events)
 [![Docker](https://quay.io/repository/hmpps/probation-offender-events/status)](https://quay.io/repository/hmpps/probation-offender-events/status)
+[![API docs](https://img.shields.io/badge/API_docs_(needs_VPN)-view-85EA2D.svg?logo=swagger)](https://probation-offender-events-dev.hmpps.service.justice.gov.uk/swagger-ui.html)
 
 ### Generate events for the offender changes in probation
 
