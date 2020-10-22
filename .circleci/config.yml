@@ -78,6 +78,7 @@ workflows:
       - hmpps/deploy_env:
           name: deploy_staging
           env: "staging"
+          context: probation-offender-events-staging
           filters:
             branches:
               only:
