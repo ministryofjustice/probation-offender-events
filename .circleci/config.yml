@@ -75,20 +75,16 @@ workflows:
             - validate
             - build_docker
             - helm_lint
-      - hmpps/deploy_env:
-          name: deploy_staging
-          env: "staging"
-          context: probation-offender-events-staging
-          filters:
-            branches:
-              only:
-                - main
-          requires:
-            - deploy_dev
       - request-preprod-approval:
           type: approval
           requires:
             - deploy_dev
+      - hmpps/deploy_env:
+          name: deploy_staging
+          env: "staging"
+          context: probation-offender-events-staging
+          requires:
+            - request-preprod-approval
       - hmpps/deploy_env:
           name: deploy_preprod
           env: "preprod"
