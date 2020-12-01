@@ -88,22 +88,23 @@ class TelemetryServiceTest {
   }
 }
 
-private fun anOffenderUpdate(offenderDeltaId: Long = 1L,
-                             offenderId: Long = 11L,
-                             failedUpdate: Boolean = false,
-                             sourceTable : String = "OFFENDER",
-                             sourceRecordId : Long = 345L,
-                             dateChanged : LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43"),
-                             status : String = "INPROGRESS"
+private fun anOffenderUpdate(
+  offenderDeltaId: Long = 1L,
+  offenderId: Long = 11L,
+  failedUpdate: Boolean = false,
+  sourceTable: String = "OFFENDER",
+  sourceRecordId: Long = 345L,
+  dateChanged: LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43"),
+  status: String = "INPROGRESS"
 ) = OffenderUpdate(
-    offenderId = offenderId,
-    offenderDeltaId = offenderDeltaId,
-    dateChanged = dateChanged,
-    action = "INSERT",
-    sourceTable = sourceTable,
-    sourceRecordId = sourceRecordId,
-    status = status,
-    failedUpdate = failedUpdate
+  offenderId = offenderId,
+  offenderDeltaId = offenderDeltaId,
+  dateChanged = dateChanged,
+  action = "INSERT",
+  sourceTable = sourceTable,
+  sourceRecordId = sourceRecordId,
+  status = status,
+  failedUpdate = failedUpdate
 )
 
 private fun anOffenderIdentifier(offenderId: Long = 1L) = OffenderIdentifiers(offenderId, PrimaryIdentifiers("crn$offenderId", "noms$offenderId"))

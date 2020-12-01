@@ -19,7 +19,6 @@ import org.junit.jupiter.api.extension.ExtensionContext
 import uk.gov.justice.digital.hmpps.offenderevents.service.OffenderUpdate
 import java.time.format.DateTimeFormatter
 
-
 class CommunityApiExtension : BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
   companion object {
     @JvmField
@@ -45,62 +44,75 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
   }
 
   fun stubHealthPing(status: Int) {
-    stubFor(get("/health/ping").willReturn(aResponse()
-        .withHeader("Content-Type", "application/json")
-        .withBody(if (status == 200) "pong" else "some error")
-        .withStatus(status)))
-
+    stubFor(
+      get("/health/ping").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(if (status == 200) "pong" else "some error")
+          .withStatus(status)
+      )
+    )
   }
 
   fun stubNextUpdates(vararg offenderUpdates: OffenderUpdate) {
     offenderUpdates.forEachIndexed { index, offenderUpdate ->
-      stubFor(get("/secure/offenders/nextUpdate")
+      stubFor(
+        get("/secure/offenders/nextUpdate")
           .inScenario("Multiple events")
           .whenScenarioStateIs(if (index == 0) STARTED else "$index")
           .willReturn(
-              aResponse()
-                  .withHeader("Content-Type", "application/json")
-                  .withBody(toJson(offenderUpdate))
+            aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withBody(toJson(offenderUpdate))
           )
           .willSetStateTo("${index + 1}")
       )
     }
-    stubFor(get("/secure/offenders/nextUpdate")
+    stubFor(
+      get("/secure/offenders/nextUpdate")
         .inScenario("Multiple events")
         .whenScenarioStateIs("${offenderUpdates.size}")
         .willReturn(
-            aResponse()
-                .withHeader("Content-Type", "application/json")
-                .withStatus(404)
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(404)
         )
         .willSetStateTo("FINISHED")
     )
-
   }
 
   fun stubDeleteOffenderUpdate(vararg offenderDeltaIds: Long) {
     offenderDeltaIds.forEach {
-      stubFor(delete("/secure/offenders/update/$it").willReturn(aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withStatus(200)))
+      stubFor(
+        delete("/secure/offenders/update/$it").willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+        )
+      )
     }
   }
 
   fun stubMarkAsFailed(vararg offenderDeltaIds: Long) {
     offenderDeltaIds.forEach {
-      stubFor(put("/secure/offenders/update/$it/markAsFailed").willReturn(aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withStatus(200)))
+      stubFor(
+        put("/secure/offenders/update/$it/markAsFailed").willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withStatus(200)
+        )
+      )
     }
   }
 
   fun stubPrimaryIdentifiers(vararg offenderIds: Long) {
     offenderIds.forEach { offenderId ->
-      stubFor(get("/secure/offenders/offenderId/${offenderId}/identifiers")
+      stubFor(
+        get("/secure/offenders/offenderId/$offenderId/identifiers")
           .willReturn(
-              aResponse()
-                  .withHeader("Content-Type", "application/json")
-                  .withBody(anOffenderIdentifier(offenderId))
+            aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withBody(anOffenderIdentifier(offenderId))
           )
       )
     }
@@ -108,19 +120,20 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
 
   fun stubPrimaryIdentifiersNotFound(vararg offenderIds: Long) {
     offenderIds.forEach { offenderId ->
-      stubFor(get("/secure/offenders/offenderId/${offenderId}/identifiers")
+      stubFor(
+        get("/secure/offenders/offenderId/$offenderId/identifiers")
           .willReturn(
-              aResponse()
-                  .withHeader("Content-Type", "application/json")
-                  .withStatus(404)
+            aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withStatus(404)
           )
       )
     }
   }
 
-  fun verifyPrimaryIdentifiersCalledWith(offenderId: Long) = this.verify(getRequestedFor(urlEqualTo("/secure/offenders/offenderId/${offenderId}/identifiers")))
+  fun verifyPrimaryIdentifiersCalledWith(offenderId: Long) = this.verify(getRequestedFor(urlEqualTo("/secure/offenders/offenderId/$offenderId/identifiers")))
 
-  fun verifyOffenderUpdateDeleteCalledWith(offenderDeltaId: Long) = this.verify(deleteRequestedFor(urlEqualTo("/secure/offenders/update/${offenderDeltaId}")))
+  fun verifyOffenderUpdateDeleteCalledWith(offenderDeltaId: Long) = this.verify(deleteRequestedFor(urlEqualTo("/secure/offenders/update/$offenderDeltaId")))
 
   fun verifyNotMarkedAsFailed(offenderDeltaId: Long) = this.verify(exactly(0), putRequestedFor(urlEqualTo("/secure/offenders/update/$offenderDeltaId/markAsFailed")))
 
@@ -130,14 +143,14 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
 
   fun verifyDeleteOffenderUpdate(offenderDeltaId: Long) = this.verify(deleteRequestedFor(urlEqualTo("/secure/offenders/update/$offenderDeltaId")))
 
-
   fun countNextUpdateRequests(): Int = findAll(getRequestedFor(urlEqualTo("/secure/offenders/nextUpdate"))).count()
 
   fun countGetPrimaryIdentifiersRequests(): Int = findAll(getRequestedFor(urlMatching("/secure/offenders/offenderId/[0-9]*/identifiers"))).count()
 
   fun countDeleteOffenderUpdateRequests(): Int = findAll(deleteRequestedFor(urlMatching("/secure/offenders/update/[0-9]*"))).count()
 
-  private fun toJson(offenderUpdate: OffenderUpdate) = """
+  private fun toJson(offenderUpdate: OffenderUpdate) =
+    """
     {
       "offenderId": ${offenderUpdate.offenderId},
       "dateChanged": "${offenderUpdate.dateChanged.format(DateTimeFormatter.ISO_DATE_TIME)}",
@@ -148,15 +161,16 @@ class CommunityApiMockServer : WireMockServer(WIREMOCK_PORT) {
       "status": "${offenderUpdate.status}",
       "failedUpdate": ${offenderUpdate.failedUpdate}
     }
-  """.trimIndent()
+    """.trimIndent()
 
-  private fun anOffenderIdentifier(offenderId: Long) = """
+  private fun anOffenderIdentifier(offenderId: Long) =
+    """
     {
       "offenderId": $offenderId,
       "primaryIdentifiers": {
-        "crn": "CRN${offenderId}",
-        "nomsNumber": "NOMS${offenderId}"
+        "crn": "CRN$offenderId",
+        "nomsNumber": "NOMS$offenderId"
       }
     }
-  """.trimIndent()
+    """.trimIndent()
 }

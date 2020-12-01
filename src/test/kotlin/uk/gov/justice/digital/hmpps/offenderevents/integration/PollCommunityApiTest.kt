@@ -26,7 +26,6 @@ import java.time.LocalDateTime
 
 const val numberOfExpectedMessagesPerOffenderUpdate = 2
 
-
 class PollCommunityApiTest : IntegrationTestBase() {
 
   @Autowired
@@ -43,9 +42,9 @@ class PollCommunityApiTest : IntegrationTestBase() {
   @Nested
   inner class HappyPath {
     private val offenderUpdates = listOf(
-        createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L),
-        createOffenderUpdate(offenderDeltaId = 2L, offenderId = 103L),
-        createOffenderUpdate(offenderDeltaId = 3L, offenderId = 1024)
+      createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L),
+      createOffenderUpdate(offenderDeltaId = 2L, offenderId = 103L),
+      createOffenderUpdate(offenderDeltaId = 3L, offenderId = 1024)
     )
     private val offenderDeltaIds = offenderUpdates.map { it.offenderDeltaId }
     private val offenderIds = offenderUpdates.map { it.offenderId }
@@ -111,9 +110,9 @@ class PollCommunityApiTest : IntegrationTestBase() {
     fun `all messages have attributes for the event type and source`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * numberOfExpectedMessagesPerOffenderUpdate  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * numberOfExpectedMessagesPerOffenderUpdate }
 
-      repeat(offenderDeltaIds.size * 2 ) {
+      repeat(offenderDeltaIds.size * 2) {
         val message = getNextMessageOnTestQueue()
         assertThat(message.MessageAttributes.eventType.Value).isNotBlank
         assertThat(message.MessageAttributes.source.Value).isEqualTo("delius")
@@ -131,28 +130,29 @@ class PollCommunityApiTest : IntegrationTestBase() {
       }
     }
 
-
     @Test
     fun `3 telemetry events will be raised`() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * numberOfExpectedMessagesPerOffenderUpdate}
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == offenderDeltaIds.size * numberOfExpectedMessagesPerOffenderUpdate }
 
       offenderIds.forEachIndexed { index, offenderId ->
         verify(telemetryClient, times(offenderIds.size)).trackEvent(
-            eq("ProbationOffenderEvent"),
-            attributesCaptor.capture(),
-            isNull()
+          eq("ProbationOffenderEvent"),
+          attributesCaptor.capture(),
+          isNull()
         )
 
-        assertThat(attributesCaptor.allValues[index]).containsAllEntriesOf(mapOf(
+        assertThat(attributesCaptor.allValues[index]).containsAllEntriesOf(
+          mapOf(
             "crn" to "CRN$offenderId",
             "action" to "INSERT",
             "source" to "OFFENDER",
             "offenderDeltaId" to offenderDeltaIds[index].toString(),
             "sourceId" to "345",
             "dateChanged" to "2020-07-19T13:56:43"
-        ))
+          )
+        )
         assertThat(attributesCaptor.allValues[index]).containsKey("timeSinceUpdateSeconds")
       }
     }
@@ -173,7 +173,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_ADDRESS_CHANGED")
@@ -184,11 +184,10 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_DETAILS_CHANGED")
-
     }
 
     @Test
@@ -197,7 +196,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_MANAGER_CHANGED")
@@ -208,7 +207,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "ALIAS"))
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_ALIAS_CHANGED")
@@ -220,7 +219,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_OFFICER_CHANGED")
@@ -232,7 +231,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
 
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_BANANAS_CHANGED")
@@ -244,7 +243,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
       getNextMessageOnTestQueue()
 
       val message = getNextMessageOnTestQueue()
@@ -257,7 +256,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate  }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
       getNextMessageOnTestQueue()
 
       val message = getNextMessageOnTestQueue()
@@ -266,8 +265,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
   }
 
   private fun getNextMessageOnTestQueue() =
-      gson.fromJson(awsSqsClient.receiveMessage(queueUrl).messages[0].body, Message::class.java)
-
+    gson.fromJson(awsSqsClient.receiveMessage(queueUrl).messages[0].body, Message::class.java)
 
   @Nested
   inner class ExceptionScenarios {
@@ -285,7 +283,6 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-
       CommunityApiExtension.communityApi.verifyNotMarkedAsFailed(1L)
       CommunityApiExtension.communityApi.verifyNotDeleteOffenderUpdate(1L)
     }
@@ -293,8 +290,8 @@ class PollCommunityApiTest : IntegrationTestBase() {
     @Test
     internal fun `for a new update which has no primary identifiers, the next available update will be retrieved`() {
       CommunityApiExtension.communityApi.stubNextUpdates(
-          createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, failedUpdate = false),
-          createOffenderUpdate(offenderDeltaId = 2L, offenderId = 202L, failedUpdate = false)
+        createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, failedUpdate = false),
+        createOffenderUpdate(offenderDeltaId = 2L, offenderId = 202L, failedUpdate = false)
       )
       CommunityApiExtension.communityApi.stubPrimaryIdentifiersNotFound(102L)
       CommunityApiExtension.communityApi.stubPrimaryIdentifiers(202L)
@@ -327,11 +324,11 @@ class PollCommunityApiTest : IntegrationTestBase() {
       offenderUpdatePollService.pollForOffenderUpdates()
 
       verify(telemetryClient).trackEvent(
-          eq("ProbationOffenderPermanentlyFailedEvent"),
-          check {
-            assertThat(it).containsExactlyEntriesOf(mapOf("offenderDeltaId" to "1", "offenderId" to "102"))
-          },
-          isNull()
+        eq("ProbationOffenderPermanentlyFailedEvent"),
+        check {
+          assertThat(it).containsExactlyEntriesOf(mapOf("offenderDeltaId" to "1", "offenderId" to "102"))
+        },
+        isNull()
       )
     }
   }
@@ -342,17 +339,16 @@ class PollCommunityApiTest : IntegrationTestBase() {
   }
 }
 
-private fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long, failedUpdate: Boolean = false, sourceTable : String = "OFFENDER", sourceRecordId : Long = 345L, dateChanged : LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43")) = OffenderUpdate(
-    offenderId = offenderId,
-    offenderDeltaId = offenderDeltaId,
-    dateChanged = dateChanged,
-    action = "INSERT",
-    sourceTable = sourceTable,
-    sourceRecordId = sourceRecordId,
-    status = "INPROGRESS",
-    failedUpdate = failedUpdate
+private fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long, failedUpdate: Boolean = false, sourceTable: String = "OFFENDER", sourceRecordId: Long = 345L, dateChanged: LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43")) = OffenderUpdate(
+  offenderId = offenderId,
+  offenderDeltaId = offenderDeltaId,
+  dateChanged = dateChanged,
+  action = "INSERT",
+  sourceTable = sourceTable,
+  sourceRecordId = sourceRecordId,
+  status = "INPROGRESS",
+  failedUpdate = failedUpdate
 )
-
 
 data class EventType(val Value: String)
 data class Source(val Value: String)

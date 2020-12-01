@@ -12,67 +12,65 @@ import java.time.LocalDateTime
 
 @Service
 class CommunityApiService(
-    @Qualifier("communityApiWebClient") private val webClient: WebClient,
-    @Value("\${community.endpoint.url}") private val communityApiUrl: String,
+  @Qualifier("communityApiWebClient") private val webClient: WebClient,
+  @Value("\${community.endpoint.url}") private val communityApiUrl: String,
 ) {
 
   fun getOffenderUpdate(): OffenderUpdate? {
     return webClient.get()
-        .uri("$communityApiUrl/secure/offenders/nextUpdate")
-        .retrieve()
-        .bodyToMono(OffenderUpdate::class.java)
-        .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
-        .block()
+      .uri("$communityApiUrl/secure/offenders/nextUpdate")
+      .retrieve()
+      .bodyToMono(OffenderUpdate::class.java)
+      .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
+      .block()
   }
 
   fun getOffenderIdentifiers(offenderId: Long): OffenderIdentifiers? =
-      webClient.get()
-          .uri("$communityApiUrl/secure/offenders/offenderId/$offenderId/identifiers")
-          .retrieve()
-          .bodyToMono(OffenderIdentifiers::class.java)
-          .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
-          .block()
+    webClient.get()
+      .uri("$communityApiUrl/secure/offenders/offenderId/$offenderId/identifiers")
+      .retrieve()
+      .bodyToMono(OffenderIdentifiers::class.java)
+      .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
+      .block()
 
   fun deleteOffenderUpdate(offenderDeltaId: Long) {
     webClient.delete()
-        .uri("$communityApiUrl/secure/offenders/update/$offenderDeltaId")
-        .retrieve()
-        .toBodilessEntity()
-        .block()
+      .uri("$communityApiUrl/secure/offenders/update/$offenderDeltaId")
+      .retrieve()
+      .toBodilessEntity()
+      .block()
   }
 
   fun markOffenderUpdateAsPermanentlyFailed(offenderDeltaId: Long) {
     webClient.put()
-        .uri("$communityApiUrl/secure/offenders/update/$offenderDeltaId/markAsFailed")
-        .retrieve()
-        .toBodilessEntity()
-        .block()
+      .uri("$communityApiUrl/secure/offenders/update/$offenderDeltaId/markAsFailed")
+      .retrieve()
+      .toBodilessEntity()
+      .block()
   }
-
 }
 
 fun <T> emptyWhenNotFound(exception: WebClientResponseException): Mono<T> = emptyWhen(exception, NOT_FOUND)
 fun <T> emptyWhen(exception: WebClientResponseException, statusCode: HttpStatus): Mono<T> =
-    if (exception.rawStatusCode == statusCode.value()) Mono.empty() else Mono.error(exception)
-
+  if (exception.rawStatusCode == statusCode.value()) Mono.empty() else Mono.error(exception)
 
 data class OffenderUpdate(
-    val offenderId: Long,
-    val dateChanged: LocalDateTime,
-    val action: String,
-    val offenderDeltaId: Long,
-    val sourceTable: String,
-    val sourceRecordId: Long,
-    val status: String,
-    val failedUpdate: Boolean
+  val offenderId: Long,
+  val dateChanged: LocalDateTime,
+  val action: String,
+  val offenderDeltaId: Long,
+  val sourceTable: String,
+  val sourceRecordId: Long,
+  val status: String,
+  val failedUpdate: Boolean
 )
 
 data class PrimaryIdentifiers(
-    val crn: String,
-    val nomsNumber: String? = null,
+  val crn: String,
+  val nomsNumber: String? = null,
 )
 
 data class OffenderIdentifiers(
-    val offenderId: Long,
-    val primaryIdentifiers: PrimaryIdentifiers,
+  val offenderId: Long,
+  val primaryIdentifiers: PrimaryIdentifiers,
 )

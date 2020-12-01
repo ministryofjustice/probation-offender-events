@@ -10,19 +10,19 @@ import org.springframework.stereotype.Component
 
 @Component
 class TopicHealth(
-    private val awsSnsClient: AmazonSNS,
-    @Value("\${sns.topic.arn}") private val arn: String
+  private val awsSnsClient: AmazonSNS,
+  @Value("\${sns.topic.arn}") private val arn: String
 ) : HealthIndicator {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
   override fun health(): Health =
-      try {
-        awsSnsClient.getTopicAttributes(arn)
-        Health.Builder().up().withDetail("arn", arn).build()
-      } catch (ex: Exception) {
-        log.error("Health failed for SNS Topic due to ", ex)
-        Health.Builder().down(ex).withDetail("arn", arn).build()
-      }
+    try {
+      awsSnsClient.getTopicAttributes(arn)
+      Health.Builder().up().withDetail("arn", arn).build()
+    } catch (ex: Exception) {
+      log.error("Health failed for SNS Topic due to ", ex)
+      Health.Builder().down(ex).withDetail("arn", arn).build()
+    }
 }

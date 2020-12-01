@@ -15,7 +15,7 @@ class LocalStackConfig {
   @ConditionalOnProperty(name = ["sns.provider"], havingValue = "localstack", matchIfMissing = true)
   @Primary
   fun awsSnsClient(@Value("\${sns.endpoint.url}") serviceEndpoint: String, @Value("\${cloud.aws.region.static}") region: String): AmazonSNS =
-      AmazonSNSClientBuilder.standard()
-          .withEndpointConfiguration(EndpointConfiguration(serviceEndpoint, region))
-          .build()
+    AmazonSNSClientBuilder.standard()
+      .withEndpointConfiguration(EndpointConfiguration(serviceEndpoint, region))
+      .build()
 }

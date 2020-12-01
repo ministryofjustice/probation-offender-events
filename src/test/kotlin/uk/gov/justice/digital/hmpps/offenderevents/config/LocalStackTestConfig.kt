@@ -12,16 +12,16 @@ import org.springframework.context.annotation.Configuration
 class LocalStackTestConfig {
   @Bean
   fun awsSqsClient(
-      @Value("\${sqs.endpoint.url}") serviceEndpoint: String,
-      @Value("\${cloud.aws.region.static}") region: String
+    @Value("\${sqs.endpoint.url}") serviceEndpoint: String,
+    @Value("\${cloud.aws.region.static}") region: String
   ): AmazonSQS = AmazonSQSClientBuilder.standard()
-      .withEndpointConfiguration(EndpointConfiguration(serviceEndpoint, region))
-      .build()
+    .withEndpointConfiguration(EndpointConfiguration(serviceEndpoint, region))
+    .build()
 
   @Bean
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
-  fun queueUrl(@Autowired awsSqsClient: AmazonSQS,
-               @Value("\${sqs.queue.name}") queueName: String
+  fun queueUrl(
+    @Autowired awsSqsClient: AmazonSQS,
+    @Value("\${sqs.queue.name}") queueName: String
   ): String = awsSqsClient.getQueueUrl(queueName).queueUrl
-
 }
