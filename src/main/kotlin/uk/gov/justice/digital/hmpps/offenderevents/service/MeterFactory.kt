@@ -17,7 +17,7 @@ class MeterFactory(private val meterRegistry: MeterRegistry) {
   fun failedCounter() = registerCounter(meterRegistry, UPDATES_METRIC, "The number of updates failed", "failed")
   fun permanentlyFailedCounter() = registerCounter(meterRegistry, UPDATES_METRIC, "The number of updates permanently failed - no furth retries", "permanentlyFailed")
   fun publishedCounter() = registerCounter(meterRegistry, UPDATES_METRIC, "The number of update events published", "published")
-  fun ageOfOffenderUpdateGauge(): Timer = Timer.builder(UPDATE_AGE_METRIC ).description("The age of the update before being published").register(meterRegistry)
+  fun ageOfOffenderUpdateGauge(): Timer = Timer.builder(UPDATE_AGE_METRIC).description("The age of the update before being published").register(meterRegistry)
 
   private fun registerCounter(meterRegistry: MeterRegistry, name: String, description: String, type: String = ""): Counter {
     val builder = Counter.builder(name).description(description)
@@ -26,5 +26,4 @@ class MeterFactory(private val meterRegistry: MeterRegistry) {
     }
     return builder.register(meterRegistry)
   }
-
 }

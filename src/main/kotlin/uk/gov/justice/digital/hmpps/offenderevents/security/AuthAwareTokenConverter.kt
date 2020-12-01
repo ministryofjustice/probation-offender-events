@@ -8,14 +8,13 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 
-
 class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
   private val jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>> = JwtGrantedAuthoritiesConverter()
 
   override fun convert(jwt: Jwt): AbstractAuthenticationToken {
     return AuthAwareAuthenticationToken(
-        jwt = jwt,
-        authorities = extractAuthorities(jwt)
+      jwt = jwt,
+      authorities = extractAuthorities(jwt)
     )
   }
 
@@ -31,6 +30,6 @@ class AuthAwareTokenConverter : Converter<Jwt, AbstractAuthenticationToken> {
 }
 
 class AuthAwareAuthenticationToken(
-    jwt: Jwt,
-    authorities: Collection<GrantedAuthority>
+  jwt: Jwt,
+  authorities: Collection<GrantedAuthority>
 ) : JwtAuthenticationToken(jwt, authorities)

@@ -8,12 +8,11 @@ class InfoTest : IntegrationTestBase() {
   @Test
   fun `Info page is accessible`() {
     webTestClient.get()
-        .uri("/info")
-        .exchange()
-        .expectStatus()
-        .isOk
-        .expectBody()
-        .jsonPath("app.name").isEqualTo("Probation Offender Events")
+      .uri("/info")
+      .exchange()
+      .expectStatus()
+      .isOk
+      .expectBody()
+      .jsonPath("app.name").isEqualTo("Probation Offender Events")
   }
-
 }

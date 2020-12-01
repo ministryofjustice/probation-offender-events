@@ -15,13 +15,16 @@ class SpringCloudAwsConfig {
   @Bean
   @ConditionalOnProperty(name = ["sns.provider"], havingValue = "aws")
   @Primary
-  fun awsSnsClient(@Value("\${sns.aws.access.key.id}") accessKey: String, @Value("\${sns.aws.secret.access.key}") secretKey: String,
-                   @Value("\${cloud.aws.region.static}") region: String): AmazonSNS =
-      BasicAWSCredentials(accessKey, secretKey)
-          .let {
-            AmazonSNSClientBuilder.standard()
-                .withCredentials(AWSStaticCredentialsProvider(it))
-                .withRegion(region)
-                .build()
-          }
+  fun awsSnsClient(
+    @Value("\${sns.aws.access.key.id}") accessKey: String,
+    @Value("\${sns.aws.secret.access.key}") secretKey: String,
+    @Value("\${cloud.aws.region.static}") region: String
+  ): AmazonSNS =
+    BasicAWSCredentials(accessKey, secretKey)
+      .let {
+        AmazonSNSClientBuilder.standard()
+          .withCredentials(AWSStaticCredentialsProvider(it))
+          .withRegion(region)
+          .build()
+      }
 }

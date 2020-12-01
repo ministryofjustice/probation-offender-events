@@ -7,14 +7,16 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
-class TelemetryService(private val telemetryClient: TelemetryClient,
-                       meterFactory: MeterFactory) {
+class TelemetryService(
+  private val telemetryClient: TelemetryClient,
+  meterFactory: MeterFactory
+) {
 
-  private val pollCount  = meterFactory.pollCounter()
-  private val foundCount  = meterFactory.readCounter()
-  private val failedCount  = meterFactory.failedCounter()
-  private val permanentlyFailedCount  = meterFactory.permanentlyFailedCounter()
-  private val publishedCount  = meterFactory.publishedCounter()
+  private val pollCount = meterFactory.pollCounter()
+  private val foundCount = meterFactory.readCounter()
+  private val failedCount = meterFactory.failedCounter()
+  private val permanentlyFailedCount = meterFactory.permanentlyFailedCounter()
+  private val publishedCount = meterFactory.publishedCounter()
   private val ageOfOffenderUpdate = meterFactory.ageOfOffenderUpdateGauge()
 
   internal fun offenderUpdatesPolled() = pollCount.increment()
@@ -24,12 +26,12 @@ class TelemetryService(private val telemetryClient: TelemetryClient,
 
   internal fun offenderUpdatePermanentlyFailed(offenderUpdate: OffenderUpdate) {
     telemetryClient.trackEvent(
-        "ProbationOffenderPermanentlyFailedEvent",
-        mapOf(
-            "offenderDeltaId" to offenderUpdate.offenderDeltaId.toString(),
-            "offenderId" to offenderUpdate.offenderId.toString()
-        ),
-        null
+      "ProbationOffenderPermanentlyFailedEvent",
+      mapOf(
+        "offenderDeltaId" to offenderUpdate.offenderDeltaId.toString(),
+        "offenderId" to offenderUpdate.offenderId.toString()
+      ),
+      null
     )
     permanentlyFailedCount.increment()
   }
@@ -39,18 +41,17 @@ class TelemetryService(private val telemetryClient: TelemetryClient,
     ageOfOffenderUpdate.record(Duration.between(offenderUpdate.dateChanged, LocalDateTime.now()))
 
     telemetryClient.trackEvent(
-        "ProbationOffenderEvent",
-        mapOf(
-            "crn" to primaryIdentifiers.primaryIdentifiers.crn,
-            "action" to offenderUpdate.action,
-            "offenderDeltaId" to offenderUpdate.offenderDeltaId.toString(),
-            "source" to offenderUpdate.sourceTable,
-            "sourceId" to offenderUpdate.sourceRecordId.toString(),
-            "dateChanged" to offenderUpdate.dateChanged.format(DateTimeFormatter.ISO_DATE_TIME),
-            "timeSinceUpdateSeconds" to age.toSeconds().toString()
-        ),
-        null
+      "ProbationOffenderEvent",
+      mapOf(
+        "crn" to primaryIdentifiers.primaryIdentifiers.crn,
+        "action" to offenderUpdate.action,
+        "offenderDeltaId" to offenderUpdate.offenderDeltaId.toString(),
+        "source" to offenderUpdate.sourceTable,
+        "sourceId" to offenderUpdate.sourceRecordId.toString(),
+        "dateChanged" to offenderUpdate.dateChanged.format(DateTimeFormatter.ISO_DATE_TIME),
+        "timeSinceUpdateSeconds" to age.toSeconds().toString()
+      ),
+      null
     )
   }
-
 }

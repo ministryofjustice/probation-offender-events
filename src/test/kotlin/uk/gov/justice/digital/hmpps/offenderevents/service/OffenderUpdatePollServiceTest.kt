@@ -35,34 +35,37 @@ class OffenderUpdatePollServiceTest {
   fun `toOffenderEventJson - will populate noms number`() {
     val offenderEventJson = offenderUpdatePollService.toOffenderEventJson(OffenderIdentifiers(1L, PrimaryIdentifiers(crn = "crn", nomsNumber = "noms")))
 
-    assertThatJson(offenderEventJson).isEqualTo("""
+    assertThatJson(offenderEventJson).isEqualTo(
+      """
       {
         "offenderId": 1,
         "crn": "crn",
         "nomsNumber": "noms"
       }
-    """.trimIndent())
+      """.trimIndent()
+    )
   }
 
   @Test
   fun `toOffenderEventJson - will not populate missing noms number`() {
     val offenderEventJson = offenderUpdatePollService.toOffenderEventJson(OffenderIdentifiers(1L, PrimaryIdentifiers(crn = "crn")))
 
-    assertThatJson(offenderEventJson).isEqualTo("""
+    assertThatJson(offenderEventJson).isEqualTo(
+      """
       {
         "offenderId": 1,
         "crn": "crn"
       }
-    """.trimIndent())
+      """.trimIndent()
+    )
   }
-
 
   @Test
   fun `pollForOffenderUpdates - will notify telemetry service - happy path`() {
     val offenderUpdate = anOffenderUpdate(offenderId = 1L, offenderDeltaId = 11L)
     whenever(communityApiService.getOffenderUpdate())
-        .thenReturn(offenderUpdate)
-        .thenReturn(null)
+      .thenReturn(offenderUpdate)
+      .thenReturn(null)
     whenever(communityApiService.getOffenderIdentifiers(offenderUpdate.offenderId)).thenReturn(anOffenderIdentifier(offenderUpdate.offenderId))
 
     offenderUpdatePollService.pollForOffenderUpdates()
@@ -77,8 +80,8 @@ class OffenderUpdatePollServiceTest {
   fun `pollForOffenderUpdates - will notify telemetry service - failure`() {
     val offenderUpdate = anOffenderUpdate(offenderId = 1L, offenderDeltaId = 11L)
     whenever(communityApiService.getOffenderUpdate())
-        .thenReturn(offenderUpdate)
-        .thenReturn(null)
+      .thenReturn(offenderUpdate)
+      .thenReturn(null)
     whenever(communityApiService.getOffenderIdentifiers(offenderUpdate.offenderId)).thenReturn(null)
 
     offenderUpdatePollService.pollForOffenderUpdates()
@@ -92,8 +95,8 @@ class OffenderUpdatePollServiceTest {
   fun `pollForOffenderUpdates - will notify telemetry service - permanent failure`() {
     val offenderUpdate = anOffenderUpdate(offenderId = 1L, offenderDeltaId = 11L, failedUpdate = true)
     whenever(communityApiService.getOffenderUpdate())
-        .thenReturn(offenderUpdate)
-        .thenReturn(null)
+      .thenReturn(offenderUpdate)
+      .thenReturn(null)
     whenever(communityApiService.getOffenderIdentifiers(offenderUpdate.offenderId)).thenReturn(null)
 
     offenderUpdatePollService.pollForOffenderUpdates()
@@ -102,26 +105,25 @@ class OffenderUpdatePollServiceTest {
     verify(telemetryService).offenderUpdateFound()
     verify(telemetryService).offenderUpdatePermanentlyFailed(any())
   }
-
-
 }
 
-private fun anOffenderUpdate(offenderDeltaId: Long,
-                             offenderId: Long,
-                             failedUpdate: Boolean = false,
-                             sourceTable : String = "OFFENDER",
-                             sourceRecordId : Long = 345L,
-                             dateChanged : LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43"),
-                             status : String = "INPROGRESS"
+private fun anOffenderUpdate(
+  offenderDeltaId: Long,
+  offenderId: Long,
+  failedUpdate: Boolean = false,
+  sourceTable: String = "OFFENDER",
+  sourceRecordId: Long = 345L,
+  dateChanged: LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43"),
+  status: String = "INPROGRESS"
 ) = OffenderUpdate(
-    offenderId = offenderId,
-    offenderDeltaId = offenderDeltaId,
-    dateChanged = dateChanged,
-    action = "INSERT",
-    sourceTable = sourceTable,
-    sourceRecordId = sourceRecordId,
-    status = status,
-    failedUpdate = failedUpdate
+  offenderId = offenderId,
+  offenderDeltaId = offenderDeltaId,
+  dateChanged = dateChanged,
+  action = "INSERT",
+  sourceTable = sourceTable,
+  sourceRecordId = sourceRecordId,
+  status = status,
+  failedUpdate = failedUpdate
 )
 
 private fun anOffenderIdentifier(offenderId: Long) = OffenderIdentifiers(offenderId, PrimaryIdentifiers("crn$offenderId", "noms$offenderId"))

@@ -39,21 +39,29 @@ class OAuthMockServer : WireMockServer(WIREMOCK_PORT) {
 
   fun stubGrantToken() {
     stubFor(
-        WireMock.post(WireMock.urlEqualTo("/auth/oauth/token"))
-            .willReturn(aResponse()
-                .withHeaders(HttpHeaders(HttpHeader("Content-Type", "application/json")))
-                .withBody("""{
+      WireMock.post(WireMock.urlEqualTo("/auth/oauth/token"))
+        .willReturn(
+          aResponse()
+            .withHeaders(HttpHeaders(HttpHeader("Content-Type", "application/json")))
+            .withBody(
+              """{
                     "token_type": "bearer",
                     "access_token": "ABCDE"
-                }""".trimIndent()))
+                }
+              """.trimIndent()
+            )
+        )
     )
   }
 
   fun stubHealthPing(status: Int) {
-    stubFor(get("/auth/health/ping").willReturn(aResponse()
-        .withHeader("Content-Type", "application/json")
-        .withBody(if (status == 200) "pong" else "some error")
-        .withStatus(status)))
+    stubFor(
+      get("/auth/health/ping").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(if (status == 200) "pong" else "some error")
+          .withStatus(status)
+      )
+    )
   }
-
 }
