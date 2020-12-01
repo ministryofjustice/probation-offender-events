@@ -1,7 +1,3 @@
-spring:
-  profiles:
-    include: localstack, stdout
-
 server:
   shutdown: immediate
 

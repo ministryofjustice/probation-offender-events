@@ -2,11 +2,19 @@ info.app:
   name: Probation Offender Events
   version: 1.0
 
+
 spring:
   application:
     name: probation-offender-events
   codec:
     max-in-memory-size: 10MB
+  profiles:
+    group:
+      dev:
+        - "localstack"
+      test:
+        - "localstack"
+        - "stdout"
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"

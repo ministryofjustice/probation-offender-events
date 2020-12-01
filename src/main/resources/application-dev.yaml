@@ -4,8 +4,6 @@ spring:
       resourceserver:
         jwt:
           public-key-location: classpath:local-public-key.pub
-  profiles:
-    include: localstack
 
 oauth:
   endpoint.url: http://localhost:8090/auth
