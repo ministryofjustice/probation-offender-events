@@ -2,7 +2,6 @@ info.app:
   name: Probation Offender Events
   version: 1.0
 
-
 spring:
   application:
     name: probation-offender-events
