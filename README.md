@@ -83,9 +83,10 @@ Depending on the speed of your machine when running all services you may need to
 
 #### External localstack
 
-`SNS_PROVIDER=localstack ./gradlew check` will override the default behaviour and will expect localstack to already be started externally. In this mode the following services must be started `sqs,sns,es`
+`docker-compose up localstack` will start the required AWS services with localstack `sqs,sns,es`.
 
-`docker-compose up localstack` will start the required AWS services.  
+`SNS_PROVIDER=localstack ./gradlew check` will override the default behaviour and use localstack running in docker.
+
 
 ## Regression test
 
