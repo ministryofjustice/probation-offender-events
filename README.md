@@ -85,6 +85,12 @@ Depending on the speed of your machine when running all services you may need to
 
 `docker-compose up localstack` will start the required AWS services with localstack `sqs,sns,es`.
 
+Make sure you local aws credentials file at `~/.aws/credentials` has following entry
+```
+[default]
+aws_access_key_id = anykey
+aws_secret_access_key = anysecret
+```
 `SNS_PROVIDER=localstack ./gradlew check` will override the default behaviour and use localstack running in docker.
 
 

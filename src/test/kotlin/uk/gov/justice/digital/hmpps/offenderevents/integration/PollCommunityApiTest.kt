@@ -25,6 +25,7 @@ import uk.gov.justice.digital.hmpps.offenderevents.wiremock.CommunityApiExtensio
 import java.time.LocalDateTime
 
 const val numberOfExpectedMessagesPerOffenderUpdate = 2
+const val numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource = 1
 
 class PollCommunityApiTest : IntegrationTestBase() {
 
@@ -214,27 +215,32 @@ class PollCommunityApiTest : IntegrationTestBase() {
     }
 
     @Test
-    internal fun `when source is OFFICER than offender officer event is raised along with generic event`() {
+    internal fun `when source is OFFICER than only offender officer event is raised`() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "OFFICER"))
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
 
-      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_OFFICER_CHANGED")
     }
 
     @Test
-    internal fun `when source is unknown than offender event containing table name is raised along with generic event`() {
+    internal fun `when source is unknown than only offender event containing table name is raised`() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "BANANAS"))
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
 
-      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
-      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_BANANAS_CHANGED")
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isNotEqualTo("OFFENDER_CHANGED")
+    }
+    @Test
+    internal fun `when source is DISPOSAL then only offender disposal event is raised `() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "DISPOSAL"))
+      offenderUpdatePollService.pollForOffenderUpdates()
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_DISPOSAL_CHANGED")
     }
 
     @Test
