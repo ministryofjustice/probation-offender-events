@@ -53,7 +53,7 @@ class OffenderUpdatePollService(
 
   private fun publishMessage(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers) {
 
-    if(sourceTableListForOffenderChangedEvent.contains(offenderUpdate.sourceTable)) {
+    if (sourceTableListForOffenderChangedEvent.contains(offenderUpdate.sourceTable)) {
       notificationMessagingTemplate.convertAndSend(
         topicMessageChannel,
         toOffenderEventJson(primaryIdentifiers),
