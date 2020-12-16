@@ -215,13 +215,13 @@ class PollCommunityApiTest : IntegrationTestBase() {
     }
 
     @Test
-    internal fun `when source is OFFICER than only offender officer event is raised`() {
+    internal fun `when source is OFFICER then offender officer event is raised along with generic event`() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "OFFICER"))
 
       offenderUpdatePollService.pollForOffenderUpdates()
 
-      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
-
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdate }
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_CHANGED")
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_OFFICER_CHANGED")
     }
 
@@ -233,7 +233,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
 
       await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
 
-      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isNotEqualTo("OFFENDER_CHANGED")
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_BANANAS_CHANGED")
     }
     @Test
     internal fun `when source is DISPOSAL then only offender disposal event is raised `() {

@@ -25,7 +25,7 @@ class OffenderUpdatePollService(
   }
   private val notificationMessagingTemplate = NotificationMessagingTemplate(snsAwsClient)
   private val topicMessageChannel = TopicMessageChannel(snsAwsClient, topicArn)
-  private val sourceTableListForOffenderChangedEvent = listOf("ALIAS", "OFFENDER", "OFFENDER_MANAGER", "OFFENDER_ADDRESS")
+  private val sourceTableListForOffenderChangedEvent = listOf("ALIAS", "OFFENDER", "OFFENDER_MANAGER", "OFFENDER_ADDRESS", "OFFICER")
 
   @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
   fun pollForOffenderUpdates() {
