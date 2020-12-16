@@ -25,6 +25,7 @@ class OffenderUpdatePollService(
   }
   private val notificationMessagingTemplate = NotificationMessagingTemplate(snsAwsClient)
   private val topicMessageChannel = TopicMessageChannel(snsAwsClient, topicArn)
+  private val sourceTableListForOffenderChangedEvent = listOf("ALIAS", "OFFENDER", "OFFENDER_MANAGER", "OFFENDER_ADDRESS")
 
   @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
   fun pollForOffenderUpdates() {
@@ -51,12 +52,14 @@ class OffenderUpdatePollService(
     }
 
   private fun publishMessage(offenderUpdate: OffenderUpdate, primaryIdentifiers: OffenderIdentifiers) {
-    notificationMessagingTemplate.convertAndSend(
-      topicMessageChannel,
-      toOffenderEventJson(primaryIdentifiers),
-      mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
-    ).also { telemetryService.offenderEventPublished() }
 
+    if(sourceTableListForOffenderChangedEvent.contains(offenderUpdate.sourceTable)) {
+      notificationMessagingTemplate.convertAndSend(
+        topicMessageChannel,
+        toOffenderEventJson(primaryIdentifiers),
+        mapOf("eventType" to "OFFENDER_CHANGED", "source" to "delius")
+      ).also { telemetryService.offenderEventPublished() }
+    }
     notificationMessagingTemplate.convertAndSend(
       topicMessageChannel,
       toOffenderEventJson(primaryIdentifiers, offenderUpdate),
