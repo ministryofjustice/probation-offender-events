@@ -10,9 +10,9 @@ Background service for generating events for the **probation-offender-events** f
 
 Events are generated when this service detects a change in Delius via the Delius OFFENDER_DELTA table. Rows are added via Delius database triggers. These triggers are currently limited changes to core offender changes; e.g changes to the management of a sentence will not typically raise an event.
 
-For each change detected two events will be raised:
+For each change detected following event(s) will be raised:
 
-*   a generic event **OFFENDER_CHANGED**
+*   a generic event **OFFENDER_CHANGED** (only if source table is one of these - "ALIAS", "OFFENDER", "OFFENDER_MANAGER", "OFFENDER_ADDRESS", "OFFICER")
 *   a more specific event with greater detail on what has changed: e.g **OFFENDER_ALIAS_CHANGED**
 
 We recommend subscribing to the specific events, the **OFFENDER_CHANGED** is deprecated and kept only for backward compatibility with existing subscribers.
@@ -24,6 +24,9 @@ The specific events currently being raised are
 *   **OFFENDER_MANAGER_CHANGED** is raised when an offender manager is allocated to the offender
 *   **OFFENDER_ALIAS_CHANGED** is raised when a alias is changed
 *   **OFFENDER_OFFICER_CHANGED** is raised when a current offender manager name changes
+*   **OFFENDER_REGISTRATION_CHANGED** is raised when an offender's registration is changed. sourceId of the event is source id of the registration.
+*   **OFFENDER_REGISTRATION_DELETED** is raised when an offender's registration is deleted. sourceId of the event is source id of the registration.
+*   **OFFENDER_REGISTRATION_DEREGISTERED** is raised when an offender's registration is deregistered. sourceId of the event is source id of the deregistation.
 
 ### Topic subscription
 
