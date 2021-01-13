@@ -368,7 +368,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
   }
 }
 
-private fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long, failedUpdate: Boolean = false, sourceTable: String = "OFFENDER", sourceRecordId: Long = 345L, dateChanged: LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43"), action:String = "INSERT") = OffenderUpdate(
+private fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long, failedUpdate: Boolean = false, sourceTable: String = "OFFENDER", sourceRecordId: Long = 345L, dateChanged: LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43"), action: String = "INSERT") = OffenderUpdate(
   offenderId = offenderId,
   offenderDeltaId = offenderDeltaId,
   dateChanged = dateChanged,
