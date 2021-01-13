@@ -226,6 +226,29 @@ class PollCommunityApiTest : IntegrationTestBase() {
     }
 
     @Test
+    internal fun `when source is REGISTRATION and action is UPSERT then offender registration changed event is raised`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "REGISTRATION", action = "UPSERT"))
+      offenderUpdatePollService.pollForOffenderUpdates()
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_REGISTRATION_CHANGED")
+    }
+
+    @Test
+    internal fun `when source is REGISTRATION and action is DELETE then offender registration deleted event is raised`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "REGISTRATION", action = "DELETE"))
+      offenderUpdatePollService.pollForOffenderUpdates()
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_REGISTRATION_DELETED")
+    }
+
+    @Test
+    internal fun `when source is DEREGISTRATION then offender registration deregistered event is raised`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "DEREGISTRATION"))
+      offenderUpdatePollService.pollForOffenderUpdates()
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_REGISTRATION_DEREGISTERED")
+    }
+    @Test
     internal fun `when source is unknown than only offender event containing table name is raised`() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "BANANAS"))
 
@@ -345,11 +368,11 @@ class PollCommunityApiTest : IntegrationTestBase() {
   }
 }
 
-private fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long, failedUpdate: Boolean = false, sourceTable: String = "OFFENDER", sourceRecordId: Long = 345L, dateChanged: LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43")) = OffenderUpdate(
+private fun createOffenderUpdate(offenderDeltaId: Long, offenderId: Long, failedUpdate: Boolean = false, sourceTable: String = "OFFENDER", sourceRecordId: Long = 345L, dateChanged: LocalDateTime = LocalDateTime.parse("2020-07-19T13:56:43"), action: String = "INSERT") = OffenderUpdate(
   offenderId = offenderId,
   offenderDeltaId = offenderDeltaId,
   dateChanged = dateChanged,
-  action = "INSERT",
+  action = action,
   sourceTable = sourceTable,
   sourceRecordId = sourceRecordId,
   status = "INPROGRESS",

@@ -5,9 +5,9 @@
     limited changes to core offender changes; e.g changes to the management of a sentence will not typically raise an event.
 </p>
 <p>
-    For each change detected two events will be raised:
+    For each change detected following event(s) will be raised:
     <ul>
-        <li>a generic event <b>OFFENDER_CHANGED</b></li>
+        <li>a generic event <b>OFFENDER_CHANGED (only if source table is one of these - "ALIAS", "OFFENDER", "OFFENDER_MANAGER", "OFFENDER_ADDRESS", "OFFICER")</b></li>
         <li>a more specific event with greater detail on what has changed: e.g <b>OFFENDER_ALIAS_CHANGED</b></li>
     </ul>
     We recommend subscribing to the specific events, the <b>OFFENDER_CHANGED</b> is deprecated and kept only for backward compatibility with existing subscribers.
@@ -20,6 +20,9 @@
         <li><b>OFFENDER_MANAGER_CHANGED</b> is raised when an offender manager is allocated to the offender</li>
         <li><b>OFFENDER_ALIAS_CHANGED</b> is raised when a alias is changed</li>
         <li><b>OFFENDER_OFFICER_CHANGED</b> is raised when a current offender manager name changes</li>
+        <li><b>OFFENDER_REGISTRATION_CHANGED</b> is raised when an offender's registration is changed. sourceId of the event is source id of the registration</li>
+        <li><b>OFFENDER_REGISTRATION_DELETED</b> is raised when an offender's registration is deleted. sourceId of the event is source id of the registration</li>
+        <li><b>OFFENDER_REGISTRATION_DEREGISTERED</b> is raised when an offender's registration is deregistered. sourceId of the event is source id of the deregistation</li>
     </ul>
 </p>
 <h3>Topic subscription</h3>

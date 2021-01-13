@@ -63,17 +63,19 @@ class OffenderUpdatePollService(
     notificationMessagingTemplate.convertAndSend(
       topicMessageChannel,
       toOffenderEventJson(primaryIdentifiers, offenderUpdate),
-      mapOf("eventType" to sourceToEventType(offenderUpdate.sourceTable), "source" to "delius")
+      mapOf("eventType" to sourceToEventType(offenderUpdate.sourceTable, offenderUpdate.action), "source" to "delius")
     ).also { telemetryService.offenderEventPublished() }
 
     telemetryService.allOffenderEventsPublished(offenderUpdate, primaryIdentifiers)
   }
 
-  private fun sourceToEventType(sourceTable: String): String = when (sourceTable) {
+  private fun sourceToEventType(sourceTable: String, action: String): String = when (sourceTable) {
     "ALIAS" -> "OFFENDER_ALIAS_CHANGED"
     "OFFENDER" -> "OFFENDER_DETAILS_CHANGED"
     "OFFENDER_MANAGER" -> "OFFENDER_MANAGER_CHANGED"
     "OFFENDER_ADDRESS" -> "OFFENDER_ADDRESS_CHANGED"
+    "REGISTRATION" -> if ("DELETE" == action) "OFFENDER_REGISTRATION_DELETED" else "OFFENDER_REGISTRATION_CHANGED"
+    "DEREGISTRATION" -> "OFFENDER_REGISTRATION_DEREGISTERED"
     else -> "OFFENDER_${sourceTable}_CHANGED"
   }
 
