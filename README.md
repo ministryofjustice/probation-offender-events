@@ -27,6 +27,7 @@ The specific events currently being raised are
 *   **OFFENDER_REGISTRATION_CHANGED** is raised when an offender's registration is changed. sourceId of the event is source id of the registration.
 *   **OFFENDER_REGISTRATION_DELETED** is raised when an offender's registration is deleted. sourceId of the event is source id of the registration.
 *   **OFFENDER_REGISTRATION_DEREGISTERED** is raised when an offender's registration is deregistered. sourceId of the event is source id of the deregistation.
+*   **OFFENDER_MANAGEMENT_TIER_CALCULATION_REQUIRED** is raised when an offender's management tier is changed. sourceId of the event is source id of the MANAGEMENT_TIER_EVENT.
 
 ### Topic subscription
 
