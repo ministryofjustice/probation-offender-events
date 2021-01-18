@@ -248,6 +248,15 @@ class PollCommunityApiTest : IntegrationTestBase() {
       await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_REGISTRATION_DEREGISTERED")
     }
+
+    @Test
+    internal fun `when source is MANAGEMENT_TIER_EVENT then offender management tier calculation required event is raised`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "MANAGEMENT_TIER_EVENT"))
+      offenderUpdatePollService.pollForOffenderUpdates()
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_MANAGEMENT_TIER_CALCULATION_REQUIRED")
+    }
+
     @Test
     internal fun `when source is unknown than only offender event containing table name is raised`() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "BANANAS"))
