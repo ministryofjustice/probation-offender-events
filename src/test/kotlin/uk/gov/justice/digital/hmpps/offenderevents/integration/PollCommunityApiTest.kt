@@ -323,7 +323,7 @@ class PollCommunityApiTest : IntegrationTestBase() {
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_BANANAS_CHANGED")
     }
     @Test
-    internal fun `when source is DISPOSAL then setence changed event is raised `() {
+    internal fun `when source is DISPOSAL then sentence changed event is raised `() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "DISPOSAL"))
       offenderUpdatePollService.pollForOffenderUpdates()
       await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
