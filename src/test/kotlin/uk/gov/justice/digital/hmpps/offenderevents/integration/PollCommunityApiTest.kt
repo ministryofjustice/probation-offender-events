@@ -258,6 +258,61 @@ class PollCommunityApiTest : IntegrationTestBase() {
     }
 
     @Test
+    internal fun `when source is RQMNT then setence order requirement changed event is raised`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(
+        createOffenderUpdate(
+          offenderDeltaId = 1L,
+          offenderId = 102L,
+          sourceTable = "RQMNT"
+        )
+      )
+      offenderUpdatePollService.pollForOffenderUpdates()
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("SENTENCE_ORDER_REQUIREMENT_CHANGED")
+    }
+
+    @Test
+    internal fun `when source is OGRS_ASSESSMENT then offender OGRS assessment changed event is raised`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(
+        createOffenderUpdate(
+          offenderDeltaId = 1L,
+          offenderId = 102L,
+          sourceTable = "OGRS_ASSESSMENT"
+        )
+      )
+      offenderUpdatePollService.pollForOffenderUpdates()
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_OGRS_ASSESSMENT_CHANGED")
+    }
+
+    @Test
+    internal fun `when source is MERGE_HISTORY then offender merged event is raised`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(
+        createOffenderUpdate(
+          offenderDeltaId = 1L,
+          offenderId = 102L,
+          sourceTable = "MERGE_HISTORY"
+        )
+      )
+      offenderUpdatePollService.pollForOffenderUpdates()
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_MERGED")
+    }
+
+    @Test
+    internal fun `when source is EVENT then conviction changed event is raised`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(
+        createOffenderUpdate(
+          offenderDeltaId = 1L,
+          offenderId = 102L,
+          sourceTable = "EVENT"
+        )
+      )
+      offenderUpdatePollService.pollForOffenderUpdates()
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("CONVICTION_CHANGED")
+    }
+    @Test
     internal fun `when source is unknown than only offender event containing table name is raised`() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "BANANAS"))
 
@@ -268,11 +323,11 @@ class PollCommunityApiTest : IntegrationTestBase() {
       assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_BANANAS_CHANGED")
     }
     @Test
-    internal fun `when source is DISPOSAL then only offender disposal event is raised `() {
+    internal fun `when source is DISPOSAL then sentence changed event is raised `() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "DISPOSAL"))
       offenderUpdatePollService.pollForOffenderUpdates()
       await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
-      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("OFFENDER_DISPOSAL_CHANGED")
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("SENTENCE_CHANGED")
     }
 
     @Test
