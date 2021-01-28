@@ -29,7 +29,7 @@ The specific events currently being raised are
 *   **OFFENDER_REGISTRATION_DEREGISTERED** is raised when an offender's registration is deregistered. sourceId of the event is source id of the deregistation.
 *   **OFFENDER_MANAGEMENT_TIER_CALCULATION_REQUIRED** is raised when an offender's management tier needs recalculating. sourceId of the event is source id of the MANAGEMENT_TIER_EVENT.
 *   **SENTENCE_ORDER_REQUIREMENT_CHANGED** is raised when an offender's sentence order requirement is changed. sourceId of the event is requirementId.
-*   **SENTENCE_CHANGED** is raised when an offender's sentence is changed. sourceId of the event is setenceId.
+*   **SENTENCE_CHANGED** is raised when an offender's sentence is changed. sourceId of the event is sentenceId.
 *   **OFFENDER_MERGED** is raised when an offender's merge history is changed. sourceId of the event is source mergeHistoryId.
 *   **CONVICTION_CHANGED** is raised when an offender's conviction is changed. sourceId of the event is convictionId.
 
