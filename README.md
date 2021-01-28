@@ -32,7 +32,7 @@ The specific events currently being raised are
 *   **SENTENCE_CHANGED** is raised when an offender's sentence is changed. sourceId of the event is sentenceId.
 *   **OFFENDER_MERGED** is raised when an offender's merge history is changed. sourceId of the event is mergeHistoryId.
 *   **CONVICTION_CHANGED** is raised when an offender's conviction is changed. sourceId of the event is convictionId.
-*   **OFFENDER_OGRS_ASSESSMENT_CHANGED** is raised when an OGRS assessment is added or updated. sourceId of the event is sourceId of the OGRS assessment.
+*   **OFFENDER_OGRS_ASSESSMENT_CHANGED** is raised when an OGRS (Offender Group Reconviction Scale) assessment is added or updated. sourceId of the event is sourceId of the OGRS assessment.
 
 ### Topic subscription
 
