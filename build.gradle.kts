@@ -15,6 +15,8 @@ dependencies {
 
   implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.6.RELEASE")
 
+  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
+
   implementation("io.micrometer:micrometer-registry-prometheus")
   implementation("io.micrometer:micrometer-core")
 
