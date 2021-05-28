@@ -15,19 +15,17 @@ dependencies {
 
   implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.6.RELEASE")
 
-  implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.3")
-
   implementation("io.micrometer:micrometer-registry-prometheus")
   implementation("io.micrometer:micrometer-core")
 
-  implementation("org.springdoc:springdoc-openapi-ui:1.5.8")
-  implementation("org.springdoc:springdoc-openapi-data-rest:1.5.8")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.5.8")
+  implementation("org.springdoc:springdoc-openapi-ui:1.5.9")
+  implementation("org.springdoc:springdoc-openapi-data-rest:1.5.9")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.5.9")
 
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("org.awaitility:awaitility-kotlin:4.1.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.25.0")
-  testImplementation("com.google.code.gson:gson:2.8.6")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.26.0")
+  testImplementation("com.google.code.gson:gson:2.8.7")
 }
 
 tasks {
