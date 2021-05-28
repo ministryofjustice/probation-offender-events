@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.offenderevents.service
 
 import com.amazonaws.services.sns.AmazonSNS
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
@@ -9,11 +8,12 @@ import com.nhaarman.mockitokotlin2.whenever
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import java.time.LocalDateTime
 
-@SpringBootTest(classes = [ObjectMapper::class, OffenderUpdatePollService::class])
+@SpringBootTest(classes = [JacksonAutoConfiguration::class, OffenderUpdatePollService::class])
 class OffenderUpdatePollServiceTest {
 
   @Suppress("unused")
