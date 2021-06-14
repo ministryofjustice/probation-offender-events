@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.3.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.2.0"
   kotlin("plugin.spring") version "1.5.10"
 }
 
@@ -15,8 +15,8 @@ dependencies {
 
   implementation("org.springframework.cloud:spring-cloud-starter-aws-messaging:2.2.6.RELEASE")
 
-  implementation("io.micrometer:micrometer-registry-prometheus:1.6.6")
-  implementation("io.micrometer:micrometer-core:1.6.6")
+  implementation("io.micrometer:micrometer-registry-prometheus")
+  implementation("io.micrometer:micrometer-core")
 
   implementation("org.springdoc:springdoc-openapi-ui:1.5.9")
   implementation("org.springdoc:springdoc-openapi-data-rest:1.5.9")
