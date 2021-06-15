@@ -21,6 +21,7 @@ env:
   OAUTH_ENDPOINT_URL: "https://sign-in-preprod.hmpps.service.justice.gov.uk/auth"
   COMMUNITY_ENDPOINT_URL: "https://community-api-secure.pre-prod.delius.probation.hmpps.dsd.io"
   OFFENDERUPDATEPOLL_ENABLED: "true"
+  APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
 
 whitelist:
   office: "217.33.148.210/32"
