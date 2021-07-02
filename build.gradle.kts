@@ -1,6 +1,6 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.2.0"
-  kotlin("plugin.spring") version "1.5.10"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "3.3.3"
+  kotlin("plugin.spring") version "1.5.20"
 }
 
 configurations {
@@ -24,7 +24,7 @@ dependencies {
 
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("org.awaitility:awaitility-kotlin:4.1.0")
-  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.26.0")
+  testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.27.0")
   testImplementation("com.google.code.gson:gson:2.8.7")
 }
 
