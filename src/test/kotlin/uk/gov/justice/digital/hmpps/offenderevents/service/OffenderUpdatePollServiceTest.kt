@@ -6,11 +6,14 @@ import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.whenever
 import net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.HmppsTopic
 import java.time.LocalDateTime
 
 @SpringBootTest(classes = [JacksonAutoConfiguration::class, OffenderUpdatePollService::class])
@@ -20,7 +23,9 @@ class OffenderUpdatePollServiceTest {
   @MockBean
   lateinit var communityApiService: CommunityApiService
 
-  @Suppress("unused")
+  @MockBean
+  lateinit var hmppsQueueService: HmppsQueueService
+
   @MockBean
   lateinit var amazonSNS: AmazonSNS
 
@@ -30,6 +35,11 @@ class OffenderUpdatePollServiceTest {
 
   @Autowired
   lateinit var offenderUpdatePollService: OffenderUpdatePollService
+
+  @BeforeEach
+  fun setup() {
+    whenever(hmppsQueueService.findByTopicId(any())).thenReturn(HmppsTopic("topic", "arn", amazonSNS))
+  }
 
   @Test
   fun `toOffenderEventJson - will populate noms number`() {

@@ -1,4 +1,10 @@
-sns:
+hmpps.sqs:
   provider: localstack
-  endpoint.url: http://localhost:4566
-  topic.arn: arn:aws:sns:eu-west-2:000000000000:probation_offender_events
+  queues:
+    events:
+      queueName: probation_offender_events_queue
+      dlqName: probation_offender_events_dlq
+      subscribeTopicId: probationevents
+  topics:
+    probationevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:probation_offender_events

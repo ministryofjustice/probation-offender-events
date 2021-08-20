@@ -1,31 +1,37 @@
 package uk.gov.justice.digital.hmpps.offenderevents.service
 
-import com.amazonaws.services.sns.AmazonSNS
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.cloud.aws.messaging.core.NotificationMessagingTemplate
 import org.springframework.cloud.aws.messaging.core.TopicMessageChannel
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.LocalDateTime
 
 @Service
 class OffenderUpdatePollService(
   private val communityApiService: CommunityApiService,
-  snsAwsClient: AmazonSNS,
-  @Value("\${sns.topic.arn}") topicArn: String,
+  private val hmppsQueueService: HmppsQueueService,
   private val objectMapper: ObjectMapper,
   private val telemetryService: TelemetryService
 ) {
-  companion object {
+  private companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
-  private val notificationMessagingTemplate = NotificationMessagingTemplate(snsAwsClient)
-  private val topicMessageChannel = TopicMessageChannel(snsAwsClient, topicArn)
-  private val sourceTableListForOffenderChangedEvent = listOf("ALIAS", "OFFENDER", "OFFENDER_MANAGER", "OFFENDER_ADDRESS", "OFFICER")
+
+  private val topic by lazy {
+    hmppsQueueService.findByTopicId("probationevents")
+      ?: throw RuntimeException("Topic with name probationevents doesn't exist")
+  }
+  private val snsAwsClient by lazy { topic.snsClient }
+
+  private val notificationMessagingTemplate by lazy { NotificationMessagingTemplate(snsAwsClient) }
+  private val topicMessageChannel by lazy { TopicMessageChannel(snsAwsClient, topic.arn) }
+  private val sourceTableListForOffenderChangedEvent =
+    listOf("ALIAS", "OFFENDER", "OFFENDER_MANAGER", "OFFENDER_ADDRESS", "OFFICER")
 
   @Scheduled(fixedDelayString = "\${offenderUpdatePoll.fixedDelay.ms}")
   fun pollForOffenderUpdates() {
@@ -88,7 +94,10 @@ class OffenderUpdatePollService(
     log.info("Found offender update for offenderId=${offenderUpdate.offenderId}")
   }
 
-  internal fun toOffenderEventJson(offenderIdentifiers: OffenderIdentifiers, offenderUpdate: OffenderUpdate? = null): String =
+  internal fun toOffenderEventJson(
+    offenderIdentifiers: OffenderIdentifiers,
+    offenderUpdate: OffenderUpdate? = null
+  ): String =
     objectMapper.writeValueAsString(
       OffenderEvent(
         offenderId = offenderIdentifiers.offenderId,
@@ -101,4 +110,10 @@ class OffenderUpdatePollService(
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-data class OffenderEvent(val offenderId: Long, val crn: String, val nomsNumber: String? = null, val sourceId: Long? = null, val eventDatetime: LocalDateTime?)
+data class OffenderEvent(
+  val offenderId: Long,
+  val crn: String,
+  val nomsNumber: String? = null,
+  val sourceId: Long? = null,
+  val eventDatetime: LocalDateTime?
+)

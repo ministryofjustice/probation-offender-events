@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.offenderevents.integration
 
-import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import com.google.gson.GsonBuilder
 import com.nhaarman.mockitokotlin2.check
@@ -22,18 +21,25 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.offenderevents.service.OffenderUpdate
 import uk.gov.justice.digital.hmpps.offenderevents.service.OffenderUpdatePollService
 import uk.gov.justice.digital.hmpps.offenderevents.wiremock.CommunityApiExtension
+import uk.gov.justice.hmpps.sqs.HmppsQueue
+import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.LocalDateTime
 
 const val numberOfExpectedMessagesPerOffenderUpdate = 2
 const val numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource = 1
 
 class PollCommunityApiTest : IntegrationTestBase() {
-
   @Autowired
-  lateinit var queueUrl: String
+  protected lateinit var hmppsQueueService: HmppsQueueService
 
-  @Autowired
-  lateinit var awsSqsClient: AmazonSQS
+  internal val eventQueue by lazy { hmppsQueueService.findByQueueId("events") as HmppsQueue }
+  internal val awsSqsClient by lazy { eventQueue.sqsClient }
+  internal val queueUrl by lazy { eventQueue.queueUrl }
+
+  @BeforeEach
+  fun cleanQueues() {
+    awsSqsClient.purgeQueue(PurgeQueueRequest(queueUrl))
+  }
 
   @Autowired
   lateinit var offenderUpdatePollService: OffenderUpdatePollService
