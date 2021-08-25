@@ -73,9 +73,6 @@ cloud:
     region:
       static: eu-west-2
 
-sns:
-  provider: aws
-
 offenderUpdatePoll:
   fixedDelay.ms: ${random.int[5000,15000]}
   enabled: true

@@ -46,19 +46,19 @@ env:
         name: {{ template "app.name" . }}
         key: OAUTH_CLIENT_SECRET
 
-  - name: SNS_AWS_ACCESS_KEY_ID
+  - name: HMPPS_SQS_TOPICS_PROBATIONEVENTS_ACCESS_KEY_ID
     valueFrom:
       secretKeyRef:
         name: probation-offender-events-topic
         key: access_key_id
 
-  - name: SNS_AWS_SECRET_ACCESS_KEY
+  - name: HMPPS_SQS_TOPICS_PROBATIONEVENTS_SECRET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: probation-offender-events-topic
         key: secret_access_key
 
-  - name: SNS_TOPIC_ARN
+  - name: HMPPS_SQS_TOPICS_PROBATIONEVENTS_ARN
     valueFrom:
       secretKeyRef:
         name: probation-offender-events-topic

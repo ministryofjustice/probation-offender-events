@@ -14,9 +14,16 @@ oauth:
 community:
   endpoint.url: http://localhost:9096
 
-sqs:
-  queue.name: test_queue
-  endpoint.url: http://localhost:4566
-
 offenderUpdatePoll:
   enabled: false
+
+hmpps.sqs:
+  provider: localstack
+  queues:
+    events:
+      queueName: ${random.uuid}
+      dlqName: ${random.uuid}
+      subscribeTopicId: probationevents
+  topics:
+    probationevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}

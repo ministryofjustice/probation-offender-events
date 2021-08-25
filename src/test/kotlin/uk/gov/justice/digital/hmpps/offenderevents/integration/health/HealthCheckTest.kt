@@ -111,8 +111,8 @@ class HealthCheckTest {
       .expectStatus()
       .isOk
       .expectBody()
-      .jsonPath("components.topicHealth.status").isEqualTo("UP")
       .jsonPath("status").isEqualTo("UP")
+      .jsonPath("components.probationevents-health.status").isEqualTo("UP")
   }
 
   private fun stubPingWithResponse(status: Int) {
