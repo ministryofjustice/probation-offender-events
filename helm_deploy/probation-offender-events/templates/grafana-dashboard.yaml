@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     grafana_dashboard: ""
+    {{- include "app.labels" . | nindent 4 }}
 data:
   poe-{{ .Release.Namespace }}.json: |
     {
