@@ -1,7 +1,10 @@
 package uk.gov.justice.digital.hmpps.offenderevents.integration.health
 
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.offenderevents.integration.IntegrationTestBase
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class InfoTest : IntegrationTestBase() {
 
@@ -13,6 +16,16 @@ class InfoTest : IntegrationTestBase() {
       .expectStatus()
       .isOk
       .expectBody()
-      .jsonPath("app.name").isEqualTo("Probation Offender Events")
+      .jsonPath("build.name").isEqualTo("probation-offender-events")
+  }
+
+  @Test
+  fun `Info page reports version`() {
+    webTestClient.get().uri("/info")
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().jsonPath("build.version").value<String> {
+        assertThat(it).startsWith(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))
+      }
   }
 }
