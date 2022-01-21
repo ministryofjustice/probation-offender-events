@@ -11,6 +11,7 @@ generic-service:
   ingress:
     enabled: true
     tlsSecretName: probation-offender-events-cert
+    contextColour: green
 
 
   env:
