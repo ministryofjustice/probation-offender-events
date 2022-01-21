@@ -4,7 +4,6 @@ generic-service:
   replicaCount: 4
   ingress:
     host: probation-offender-events-dev.hmpps.service.justice.gov.uk
-    contextColour: green
 
   env:
     OAUTH_ENDPOINT_URL: "https://sign-in-dev.hmpps.service.justice.gov.uk/auth"
