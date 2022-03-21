@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  hmpps: ministryofjustice/hmpps@3.13.0
+  hmpps: ministryofjustice/hmpps@3.14
 
 jobs:
   validate:
@@ -109,6 +109,7 @@ workflows:
                 - main
     jobs:
       - hmpps/gradle_owasp_dependency_check:
+          cache_key: v2_0
           slack_channel: probation-integration-notifications
           context:
             - hmpps-common-vars
