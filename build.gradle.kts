@@ -7,6 +7,8 @@ configurations {
   testImplementation { exclude(group = "org.junit.vintage") }
 }
 
+ext["jackson.version.databind"] = "2.13.2.2" // Overriding Jackson databind version to fix CVE-2020-36518
+
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
