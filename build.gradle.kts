@@ -27,7 +27,7 @@ dependencies {
   testImplementation("org.awaitility:awaitility-kotlin:4.1.1")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.28.0")
   testImplementation("com.google.code.gson:gson:2.8.9")
-  testImplementation("org.testcontainers:localstack:1.16.2")
+  testImplementation("org.testcontainers:localstack:1.16.3")
 }
 
 java {
