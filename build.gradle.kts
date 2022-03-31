@@ -20,7 +20,7 @@ dependencies {
   implementation("io.micrometer:micrometer-core")
 
   implementation("org.springdoc:springdoc-openapi-ui:1.6.6")
-  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.2")
+  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.6")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.2")
 
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
