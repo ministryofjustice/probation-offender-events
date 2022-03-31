@@ -24,7 +24,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.2")
 
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
-  testImplementation("org.awaitility:awaitility-kotlin:4.1.1")
+  testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.32.0")
   testImplementation("com.google.code.gson:gson:2.8.9")
   testImplementation("org.testcontainers:localstack:1.16.3")
