@@ -19,20 +19,21 @@ We recommend subscribing to the specific events, the **OFFENDER_CHANGED** is dep
 
 The specific events currently being raised are
 
-*   **OFFENDER_ADDRESS_CHANGED** is raised when an offender's address is changed
-*   **OFFENDER_DETAILS_CHANGED** is raised when offender's details has changed, e.g. date of birth
-*   **OFFENDER_MANAGER_CHANGED** is raised when an offender manager is allocated to the offender
-*   **OFFENDER_ALIAS_CHANGED** is raised when a alias is changed
-*   **OFFENDER_OFFICER_CHANGED** is raised when a current offender manager name changes
-*   **OFFENDER_REGISTRATION_CHANGED** is raised when an offender's registration is changed. sourceId of the event is source id of the registration.
-*   **OFFENDER_REGISTRATION_DELETED** is raised when an offender's registration is deleted. sourceId of the event is source id of the registration.
-*   **OFFENDER_REGISTRATION_DEREGISTERED** is raised when an offender's registration is deregistered. sourceId of the event is source id of the deregistation.
-*   **OFFENDER_MANAGEMENT_TIER_CALCULATION_REQUIRED** is raised when an offender's management tier needs recalculating. sourceId of the event is source id of the MANAGEMENT_TIER_EVENT.
-*   **SENTENCE_ORDER_REQUIREMENT_CHANGED** is raised when an offender's sentence order requirement is changed. sourceId of the event is requirementId.
-*   **SENTENCE_CHANGED** is raised when an offender's sentence is changed. sourceId of the event is sentenceId.
-*   **OFFENDER_MERGED** is raised when an offender's merge history is changed. sourceId of the event is mergeHistoryId.
-*   **CONVICTION_CHANGED** is raised when an offender's conviction is changed. sourceId of the event is convictionId.
-*   **OFFENDER_OGRS_ASSESSMENT_CHANGED** is raised when an OGRS (Offender Group Reconviction Scale) assessment is added or updated. sourceId of the event is sourceId of the OGRS assessment.
+* **OFFENDER_ADDRESS_CHANGED** is raised when an offender's address is changed
+* **OFFENDER_DETAILS_CHANGED** is raised when offender's details has changed, e.g. date of birth
+* **OFFENDER_MANAGER_CHANGED** is raised when an offender manager is allocated to the offender
+* **OFFENDER_ALIAS_CHANGED** is raised when a alias is changed
+* **OFFENDER_OFFICER_CHANGED** is raised when a current offender manager name changes
+* **OFFENDER_REGISTRATION_CHANGED** is raised when an offender's registration is changed. sourceId of the event is source id of the registration.
+* **OFFENDER_REGISTRATION_DELETED** is raised when an offender's registration is deleted. sourceId of the event is source id of the registration.
+* **OFFENDER_REGISTRATION_DEREGISTERED** is raised when an offender's registration is deregistered. sourceId of the event is source id of the deregistation.
+* **OFFENDER_MANAGEMENT_TIER_CALCULATION_REQUIRED** is raised when an offender's management tier needs recalculating. sourceId of the event is source id of the MANAGEMENT_TIER_EVENT.
+* **SENTENCE_ORDER_REQUIREMENT_CHANGED** is raised when an offender's sentence order requirement is changed. sourceId of the event is requirementId.
+* **SENTENCE_CHANGED** is raised when an offender's sentence is changed. sourceId of the event is sentenceId.
+* **OFFENDER_MERGED** is raised when an offender's merge history is changed. sourceId of the event is mergeHistoryId.
+* **CONVICTION_CHANGED** is raised when an offender's conviction is changed. sourceId of the event is convictionId.
+* **OFFENDER_OGRS_ASSESSMENT_CHANGED** is raised when an OGRS (Offender Group Reconviction Scale) assessment is added or updated. sourceId of the event is sourceId of the OGRS assessment.
+* **ORDER_MANAGER_CHANGED** is raised when an order manager changes
 
 ### Topic subscription
 

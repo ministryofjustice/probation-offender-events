@@ -210,6 +210,17 @@ class PollCommunityApiTest : IntegrationTestBase() {
     }
 
     @Test
+    internal fun `when source is ORDER_MANAGER then offender manager event is raised along with generic event`() {
+      CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "ORDER_MANAGER"))
+
+      offenderUpdatePollService.pollForOffenderUpdates()
+
+      await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == numberOfExpectedMessagesPerOffenderUpdateUnexpectedSource }
+
+      assertThat(getNextMessageOnTestQueue().MessageAttributes.eventType.Value).isEqualTo("ORDER_MANAGER_CHANGED")
+    }
+
+    @Test
     internal fun `when source is ALIAS than offender alias event is raised along with generic event`() {
       CommunityApiExtension.communityApi.stubNextUpdates(createOffenderUpdate(offenderDeltaId = 1L, offenderId = 102L, sourceTable = "ALIAS"))
       offenderUpdatePollService.pollForOffenderUpdates()

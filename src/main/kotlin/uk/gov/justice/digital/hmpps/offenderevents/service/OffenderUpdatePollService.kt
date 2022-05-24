@@ -87,6 +87,7 @@ class OffenderUpdatePollService(
     "DISPOSAL" -> "SENTENCE_CHANGED"
     "MERGE_HISTORY" -> "OFFENDER_MERGED"
     "EVENT" -> "CONVICTION_CHANGED"
+    "ORDER_MANAGER" -> "ORDER_MANAGER_CHANGED"
     else -> "OFFENDER_${sourceTable}_CHANGED"
   }
 
