@@ -88,7 +88,6 @@ workflows:
       - hmpps/helm_lint:
           name: helm_lint
       - jib-build:
-          name: jib_build
           context: hmpps-common-vars
           filters:
             branches:
