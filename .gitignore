@@ -69,5 +69,3 @@ ecr.repo
 /sonar-project.properties
 helm_deploy/*/Chart.lock
 helm_deploy/*/charts/
-
-.trivyignore
