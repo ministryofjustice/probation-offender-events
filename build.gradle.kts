@@ -20,7 +20,7 @@ dependencies {
   implementation("io.micrometer:micrometer-registry-prometheus")
   implementation("io.micrometer:micrometer-core")
 
-  implementation("org.springdoc:springdoc-openapi-ui:1.6.11")
+  implementation("org.springdoc:springdoc-openapi-ui:1.6.12")
   implementation("org.springdoc:springdoc-openapi-data-rest:1.6.11")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.11")
 
