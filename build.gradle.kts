@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.4"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.5"
   kotlin("plugin.spring") version "1.7.10"
   id("com.google.cloud.tools.jib") version "3.3.0"
 }
@@ -20,9 +20,9 @@ dependencies {
   implementation("io.micrometer:micrometer-registry-prometheus")
   implementation("io.micrometer:micrometer-core")
 
-  implementation("org.springdoc:springdoc-openapi-ui:1.6.11")
-  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.11")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.11")
+  implementation("org.springdoc:springdoc-openapi-ui:1.6.12")
+  implementation("org.springdoc:springdoc-openapi-data-rest:1.6.12")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.12")
 
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
