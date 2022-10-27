@@ -27,7 +27,7 @@ dependencies {
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.36.0")
-  testImplementation("com.google.code.gson:gson:2.9.1")
+  testImplementation("com.google.code.gson:gson:2.10")
   testImplementation("org.testcontainers:localstack:1.17.5")
 }
 
